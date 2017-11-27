@@ -55,8 +55,9 @@ export default class App extends Component {
   state = {
     selectedPhotos: [],
     isUploading: false,
-    fileLimit: 50,
+    fileLimit: 10,
   }
+
   getPhotos = () => {
     return new Promise((resolve, reject) => {
       CameraRoll.getPhotos({
@@ -74,6 +75,7 @@ export default class App extends Component {
     this.setState({ modalVisible: !this.state.modalVisible });
   }
 
+  // TODO: organize folders based on seasons/months and years
   upload = async (file) => {
     return new Promise(async (resolve, reject) => {
       const imgURI = file.node.image.uri;
@@ -99,10 +101,10 @@ export default class App extends Component {
     this.setState({ isUploading: true });
     try {
       await Promise.all(photosToUpload.map(p => this.upload(p)));
-      console.log('All done! :)');
     } catch (e) {
       console.log('something went wrong while uploading: ', e);
     } finally {
+      console.log('All done! :)');
       this.setState({ isUploading: false, selectedPhotos: [] });
     }
   }
