@@ -4,9 +4,12 @@
 	"private": true,
 	"scripts": {
 		"start": "node node_modules/react-native/local-cli/cli.js start",
-		"test": "jest"
+		"test": "jest",
+		"build-android-win" : "cd android && gradlew.bat --console plain assembleRelease",
+		"build-android-mac" : "cd android && gradlew --console plain assembleRelease"
 	},
 	"dependencies": {
+		"moment": "^2.19.2",
 		"react": "16.0.0",
 		"react-native": "0.50.4",
 		"react-native-aws3": "0.0.8",
