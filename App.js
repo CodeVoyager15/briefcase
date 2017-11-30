@@ -1,6 +1,5 @@
 // TODO: Cleanup
 // TODO: Option to delete photos after upload
-// TODO: Build apk script
 import React, { Component } from 'react';
 import {
   Platform,
@@ -9,9 +8,13 @@ import {
   View,
   CameraRoll,
   Button,
+  ToolbarAndroid,
+  Slider,
 } from 'react-native';
 import moment from 'moment';
 import { RNS3 } from 'react-native-aws3';
+
+
 import AwsOptions from './secrets';
 // TODO: import styles
 const styles = StyleSheet.create({
@@ -171,7 +174,11 @@ export default class App extends Component {
         Uploading: {this.state.uploadingFile}
       </Text>;
   }
-
+  photosNumberChange = (value)=> {
+    this.setState({
+      fileLimit: value,
+    });
+  }
   render() {
     const selectText = this.state.selectedPhotos.length ?
       `${this.state.selectedPhotos.length} photos selected` :
@@ -180,17 +187,28 @@ export default class App extends Component {
     return (
       <View style={styles.container}>
         <Text style={styles.welcomeLarge}>
-         📦
+          📦
         </Text>
         <Text style={styles.welcome}>
           Welcome to Petsbox!
         </Text>
+       <Slider
+        maximumValue={1000}
+        minimumValue={1}
+        step={10}
+        onValueChange={this.photosNumberChange}
+        onSlidingComplete={this.photosNumberChange}
+        style={{ width: 300, height: 200 }}
+       />
+       <Text>
+          Files to upload : {this.state.fileLimit}
+       </Text>
         <Button
           title={selectText}
           buttonStyle={styles.basicButton}
           onPress={this.handleSelectPhotosClick}
         />
-         <Button
+        <Button
           buttonStyle={styles.basicButton}
           color="#841584"
           title="Upload to ☁️"
@@ -198,7 +216,7 @@ export default class App extends Component {
           disabled={!this.state.selectedPhotos.length}
         />
         {this.renderUploadProgress()}
-      </View>
+        </View>
     );
   }
 }

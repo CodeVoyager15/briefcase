@@ -5,8 +5,8 @@
 	"scripts": {
 		"start": "node node_modules/react-native/local-cli/cli.js start",
 		"test": "jest",
-		"build-android-win" : "cd android && gradlew.bat --console plain assembleRelease",
-		"build-android-mac" : "cd android && gradlew --console plain assembleRelease"
+		"build-android-win": "cd android && gradlew.bat --console plain assembleRelease",
+		"build-android-mac": "cd android && gradlew --console plain assembleRelease"
 	},
 	"dependencies": {
 		"moment": "^2.19.2",
@@ -14,7 +14,8 @@
 		"react-native": "0.50.4",
 		"react-native-aws3": "0.0.8",
 		"react-native-camera": "github:lwansbrough/react-native-camera",
-		"react-native-fetch-blob": "^0.10.8"
+		"react-native-fetch-blob": "^0.10.8",
+		"react-native-menu": "^0.23.0"
 	},
 	"devDependencies": {
 		"babel-eslint": "^6.1.2",
