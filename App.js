@@ -95,20 +95,23 @@ export default class App extends Component {
     // });
   };
 
-  getFileName = (imgURI, coords = null) => {
-    const name = `${imgURI.substr(imgURI.lastIndexOf('/') + 1, imgURI.length)}`;
-    return coords ?
+  getFileName = (file) => {
+    const { uri } = file.node.image;
+    const { type, coordinates } = file.node;
+    const name = `${uri.substr(uri.lastIndexOf('/') + 1, uri.length)}`;
+    const fileName = coordinates ?
       `${name}@${this.getLocation()}` :
       name;
+    const suffix = type.split('/')[1];
+    return `${fileName}.${suffix}`;
   }
 
   upload = async (file) => {
     return new Promise(async (resolve, reject) => {
       const imgURI = file.node.image.uri;
-      this.setState({ uploadingFile: imgURI });
       const fileToUpload = {
         uri: imgURI,
-        name: this.getFileName(imgURI, file.node.coordinates),
+        name: this.getFileName(file),
         type: file.node.type,
       };
       try {
@@ -149,7 +152,6 @@ export default class App extends Component {
 
   uploadPhotos = async () => {
     const photosToUpload = this.organizeFiles(this.state.selectedPhotos);
-    this.setState({ isUploading: true });
     try {
       await Promise.all(photosToUpload.map(p => this.upload(p)));
     } catch (e) {
@@ -171,6 +173,7 @@ export default class App extends Component {
 
   handleUploadClick = async () => {
     // TODO: UI Feedback improvements
+    this.setState({ isUploading: true });
     this.uploadPhotos();
   }
 
@@ -220,7 +223,7 @@ export default class App extends Component {
           color="#841584"
           title="Upload to ☁️"
           onPress={this.handleUploadClick}
-          disabled={!this.state.selectedPhotos.length}
+          disabled={this.state.isUploading}
         />
         {this.renderUploadProgress()}
         </View>
