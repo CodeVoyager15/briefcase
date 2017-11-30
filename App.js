@@ -61,6 +61,7 @@ export default class App extends Component {
     selectedPhotos: [],
     isUploading: false,
     fileLimit: 5,
+    filesUploaded: 0,
   }
 
   getPhotos = () => {
@@ -94,24 +95,22 @@ export default class App extends Component {
     // });
   };
 
-  getFileName = async(imgURI, coords = null) => {
+  getFileName = (imgURI, coords = null) => {
     const name = `${imgURI.substr(imgURI.lastIndexOf('/') + 1, imgURI.length)}`;
     return coords ?
-      `${name}@${await this.getLocation()}` :
+      `${name}@${this.getLocation()}` :
       name;
   }
 
-  // TODO: organize folders based on seasons/months and years
   upload = async (file) => {
     return new Promise(async (resolve, reject) => {
       const imgURI = file.node.image.uri;
       this.setState({ uploadingFile: imgURI });
       const fileToUpload = {
         uri: imgURI,
-        name: this.getFileName(imgURI, file.node.coordinates), // check the name
+        name: this.getFileName(imgURI, file.node.coordinates),
         type: file.node.type,
       };
-      console.log('=== uploading file: ', file);
       try {
         const folderPrefix = file.folder;
         const prefixedAwsOptions = {
@@ -122,6 +121,9 @@ export default class App extends Component {
         if (response.status !== 201) {
           reject(response);
         }
+        this.setState({
+          filesUploaded: ++this.state.filesUploaded,
+        });
         resolve();
       } catch (e) { reject(e); }
     });
@@ -154,7 +156,11 @@ export default class App extends Component {
       console.log('something went wrong while uploading: ', e);
     } finally {
       console.log('All done! :)');
-      this.setState({ isUploading: false, selectedPhotos: [] });
+      this.setState({
+        isUploading: false,
+        selectedPhotos: [],
+        filesUploaded: 0,
+      });
     }
   }
 
@@ -169,12 +175,13 @@ export default class App extends Component {
   }
 
   renderUploadProgress() {
+    const { filesUploaded, selectedPhotos } = this.state;
     return this.state.isUploading &&
       <Text>
-        Uploading: {this.state.uploadingFile}
+        Files uploaed: {filesUploaded} / {selectedPhotos.length}
       </Text>;
   }
-  photosNumberChange = (value)=> {
+  photosNumberChange = (value) => {
     this.setState({
       fileLimit: value,
     });
@@ -192,17 +199,17 @@ export default class App extends Component {
         <Text style={styles.welcome}>
           Welcome to Petsbox!
         </Text>
-       <Slider
+        <Text style={{ margin: 20 }}>
+          Select number of files to upload : {this.state.fileLimit}
+        </Text>
+        <Slider
         maximumValue={1000}
         minimumValue={1}
         step={10}
         onValueChange={this.photosNumberChange}
         onSlidingComplete={this.photosNumberChange}
-        style={{ width: 300, height: 200 }}
-       />
-       <Text>
-          Files to upload : {this.state.fileLimit}
-       </Text>
+        style={{ width: 300, height: 50, marginBottom: 60 }}
+        />
         <Button
           title={selectText}
           buttonStyle={styles.basicButton}
