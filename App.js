@@ -203,7 +203,7 @@ export default class App extends Component {
           Select number of files to upload : {this.state.fileLimit}
         </Text>
         <Slider
-        maximumValue={1000}
+        maximumValue={2000}
         minimumValue={1}
         step={10}
         onValueChange={this.photosNumberChange}
