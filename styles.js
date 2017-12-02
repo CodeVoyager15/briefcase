@@ -10,6 +10,11 @@ export default StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },
+  menu: {
+    flex: 1,
+    margin: 'auto',
+    backgroundColor: '#F5FCFF',
+  },
   welcome: {
     fontSize: 40,
     textAlign: 'center',

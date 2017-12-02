@@ -16,6 +16,7 @@ import moment from 'moment';
 import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
 import AwsOptions from './secrets';
+import Hamburger from 'react-native-hamburger';
 
 const VIBRATION_DURATION = 10000;
 const VIBRATION_PATTERN = [500, 1000, 500];
@@ -27,7 +28,6 @@ const VIBRATION_PATTERN = [500, 1000, 500];
 //   secretKey: '********************',
 //   successActionStatus: 201,
 // };
-
 // TODO: Add config menu
 export default class App extends Component {
 
@@ -41,6 +41,13 @@ export default class App extends Component {
     showProgress: false,
     uploadCompleted: false,
   }
+  closeControlPanel = () => {
+    this._drawer.close();
+  };
+  openControlPanel = () => {
+    this._drawer.open();
+  };
+
 
   getPhotos = () => {
     return new Promise((resolve, reject) => {
@@ -209,12 +216,32 @@ export default class App extends Component {
       );
   }
 
+  handleMenuPress =() => {
+    console.log('menu pressed');
+  }
 
   photosNumberChange = (value) => {
     this.setState({
       fileLimit: value,
     });
   }
+
+  renderDrawer = () => {
+    return (
+      <View style={{
+        display: 'flex',
+        marginRight: 'auto',
+        padding: 20,
+      }}>
+        <Hamburger
+          active
+          type='cross'
+          onPress={this.handleMenuPress}
+        />
+      </View>
+    );
+  }
+
   render() {
     const { selectedPhotos, isUploading, fileLimit } = this.state;
     const selectText = selectedPhotos.length ?
@@ -230,56 +257,47 @@ export default class App extends Component {
       styles.uploadButton;
 
     return (
-      <View style={styles.container}>
-        <Text style={styles.welcomeLarge}>
-          📦
-        </Text>
-        <Text style={styles.welcome}>
-          Welcome to Petsbox!
-        </Text>
-        <Text style={{ margin: 20 }}>
-          Select number of files to upload : {fileLimit}
-        </Text>
-        <Slider
-        maximumValue={2000}
-        minimumValue={1}
-        step={10}
-        onValueChange={this.photosNumberChange}
-        onSlidingComplete={this.photosNumberChange}
-        style={{ width: 300, height: 50, marginBottom: 60 }}
-        />
-        {/* <Button
-          title={selectText}
-          buttonStyle={styles.basicButton}
-          onPress={this.handleSelectPhotosClick}
-        /> */}
-         <TouchableOpacity
-           onPress={this.handleSelectPhotosClick}
-           underlayColor="white"
-         >
-          <View style={styles.selectButton}>
-            <Text style={styles.buttonText}>{selectText}</Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={this.handleSelectPhotosClick}
-          underlayColor="white"
-          disabled={!!isUploading}
-          onPress={this.handleUploadClick}
-        >
-          <View style={uploadingBtnStyle}>
-            <Text style={styles.buttonText}>{uploadText}</Text>
-          </View>
-        </TouchableOpacity>
-        {/* <Button
-          buttonStyle={styles.basicButton}
-          color="#841584"
-          title="Upload to ☁️"
-          onPress={this.handleUploadClick}
-          disabled={this.state.isUploading}
-        /> */}
-        {this.renderUploadProgress()}
+        <View style={styles.container}>
+          {this.renderDrawer()}
+          <Text style={styles.welcomeLarge}>
+            📦
+          </Text>
+          <Text style={styles.welcome}>
+            Welcome to Petsbox!
+          </Text>
+          <Text style={{ margin: 20 }}>
+            Select number of files to upload : {fileLimit}
+          </Text>
+          <Slider
+          maximumValue={2000}
+          minimumValue={1}
+          step={10}
+          onValueChange={this.photosNumberChange}
+          onSlidingComplete={this.photosNumberChange}
+          style={{ width: 300, height: 50, marginBottom: 60 }}
+          />
+          <TouchableOpacity
+            onPress={this.handleSelectPhotosClick}
+            underlayColor="white"
+          >
+            <View style={styles.selectButton}>
+              <Text style={styles.buttonText}>{selectText}</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={this.handleSelectPhotosClick}
+            underlayColor="white"
+            disabled={!!isUploading}
+            onPress={this.handleUploadClick}
+          >
+            <View style={uploadingBtnStyle}>
+              <Text style={styles.buttonText}>{uploadText}</Text>
+            </View>
+          </TouchableOpacity>
+          {this.renderUploadProgress()}
         </View>
+
+
     );
   }
 }
