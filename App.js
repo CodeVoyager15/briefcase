@@ -10,12 +10,15 @@ import {
   Button,
   Slider,
   TouchableOpacity,
+  Vibration,
 } from 'react-native';
 import moment from 'moment';
 import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
 import AwsOptions from './secrets';
 
+const VIBRATION_DURATION = 10000;
+const VIBRATION_PATTERN = [500, 1000, 500];
 // const AwsOptions = {
 //   keyPrefix: 'uploads/petsbox/',
 //   bucket: '*****',
@@ -36,6 +39,7 @@ export default class App extends Component {
     filesUploaded: 0,
     filesSkipped: [],
     showProgress: false,
+    uploadCompleted: false,
   }
 
   getPhotos = () => {
@@ -136,19 +140,23 @@ export default class App extends Component {
     return result;
   }
 
-  uploadPhotos = async () => {
-    const photosToUpload = this.organizeFiles(this.state.selectedPhotos);
-    await Promise.all(photosToUpload.map(p => this.upload(p)));
-
-    console.log('All done! :)');
+  onUploadCompleted = () => {
+    Vibration.vibrate(VIBRATION_PATTERN);
     if (this.state.filesSkipped.length) {
       console.log('Files skipped with errors: ', this.state.filesSkipped);
     }
     this.setState({
       isUploading: false,
       selectedPhotos: [],
-      filesUploaded: 0,
+      uploadCompleted: true,
     });
+    console.log('All done! :)');
+  }
+
+  uploadPhotos = async () => {
+    const photosToUpload = this.organizeFiles(this.state.selectedPhotos);
+    await Promise.all(photosToUpload.map(p => this.upload(p)));
+    this.onUploadCompleted();
   }
 
   handleSelectPhotosClick = async () => {
@@ -161,30 +169,65 @@ export default class App extends Component {
 
   handleUploadClick = async () => {
     // TODO: UI Feedback improvements
-    this.setState({ isUploading: true });
-    await sleep(50);
+    this.setState({ isUploading: true, filesUploaded: 0, filesSkipped: [] });
+    await sleep(10);
     this.uploadPhotos();
   }
 
   renderUploadProgress() {
-    const { filesUploaded, selectedPhotos } = this.state;
-    const progressText = filesUploaded ?
+    const {
+      filesUploaded,
+      selectedPhotos,
+      uploadCompleted,
+      filesSkipped } = this.state;
+    let progressText = '';
+    if (!uploadCompleted) {
+      progressText = filesUploaded ?
       `Files uploaded: ${filesUploaded} / ${selectedPhotos.length}` :
-      'Preparing files for upload';
+      'Files prepared for upload';
+    } else {
+      progressText = `${filesUploaded} files uploaded. ${filesSkipped.length} files skipped.`;
+    }
+
     return this.state.showProgress &&
       <Text>
-      {progressText}
+        {progressText}
       </Text>;
   }
+
+  renderSkippedFiles() {
+    const { filesSkipped } = this.state;
+    return !!filesSkipped.length &&
+      (
+        <ScrollView>
+          filesSkipped.map( info =>
+            <Text>
+              info.title : info.error
+            </Text>
+          )
+        </ScrollView>
+      );
+  }
+
+
   photosNumberChange = (value) => {
     this.setState({
       fileLimit: value,
     });
   }
   render() {
-    const selectText = this.state.selectedPhotos.length ?
-      `${this.state.selectedPhotos.length} photos selected` :
+    const { selectedPhotos, isUploading, fileLimit } = this.state;
+    const selectText = selectedPhotos.length ?
+      `${selectedPhotos.length} photos selected` :
       'Select files';
+
+    const uploadText = isUploading ?
+        'Uploading to ☁️' :
+        'Upload to ☁️';
+
+    const uploadingBtnStyle = isUploading ?
+      styles.uploadButtonDisabled :
+      styles.uploadButton;
 
     return (
       <View style={styles.container}>
@@ -195,7 +238,7 @@ export default class App extends Component {
           Welcome to Petsbox!
         </Text>
         <Text style={{ margin: 20 }}>
-          Select number of files to upload : {this.state.fileLimit}
+          Select number of files to upload : {fileLimit}
         </Text>
         <Slider
         maximumValue={2000}
@@ -210,14 +253,22 @@ export default class App extends Component {
           buttonStyle={styles.basicButton}
           onPress={this.handleSelectPhotosClick}
         /> */}
-         <TouchableOpacity onPress={this.handleSelectPhotosClick} underlayColor="white">
+         <TouchableOpacity
+           onPress={this.handleSelectPhotosClick}
+           underlayColor="white"
+         >
           <View style={styles.selectButton}>
             <Text style={styles.buttonText}>{selectText}</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={this.handleSelectPhotosClick} underlayColor="white">
-          <View style={styles.uploadButton}>
-            <Text style={styles.buttonText}>Upload to ☁️</Text>
+        <TouchableOpacity
+          onPress={this.handleSelectPhotosClick}
+          underlayColor="white"
+          disabled={!!isUploading}
+          onPress={this.handleUploadClick}
+        >
+          <View style={uploadingBtnStyle}>
+            <Text style={styles.buttonText}>{uploadText}</Text>
           </View>
         </TouchableOpacity>
         {/* <Button

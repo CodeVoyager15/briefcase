@@ -46,6 +46,15 @@ export default StyleSheet.create({
     borderColor: 'black',
     borderRadius: 35,
   },
+  uploadButtonDisabled: {
+    marginBottom: 30,
+    width: 240,
+    alignItems: 'center',
+    backgroundColor: 'lightgray',
+    borderStyle: 'solid',
+    borderColor: 'black',
+    borderRadius: 35,
+  },
   buttonText: {
     padding: 20,
     color: 'white',
