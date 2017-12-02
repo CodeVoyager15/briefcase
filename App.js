@@ -4,48 +4,17 @@ import React, { Component } from 'react';
 import sleep from 'sleep-promise';
 import {
   Platform,
-  StyleSheet,
   Text,
   View,
   CameraRoll,
   Button,
-  ToolbarAndroid,
   Slider,
+  TouchableOpacity,
 } from 'react-native';
 import moment from 'moment';
 import { RNS3 } from 'react-native-aws3';
-
-
+import styles from './styles';
 import AwsOptions from './secrets';
-
-
-// TODO: import styles
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-  },
-  welcome: {
-    fontSize: 40,
-    textAlign: 'center',
-    margin: 10,
-  },
-  welcomeLarge: {
-    fontSize: 80,
-    textAlign: 'center',
-    margin: 15,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-  basicButton: {
-    textAlign: 'center',
-  },
-});
 
 // const AwsOptions = {
 //   keyPrefix: 'uploads/petsbox/',
@@ -236,18 +205,28 @@ export default class App extends Component {
         onSlidingComplete={this.photosNumberChange}
         style={{ width: 300, height: 50, marginBottom: 60 }}
         />
-        <Button
+        {/* <Button
           title={selectText}
           buttonStyle={styles.basicButton}
           onPress={this.handleSelectPhotosClick}
-        />
-        <Button
+        /> */}
+         <TouchableOpacity onPress={this.handleSelectPhotosClick} underlayColor="white">
+          <View style={styles.selectButton}>
+            <Text style={styles.buttonText}>{selectText}</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={this.handleSelectPhotosClick} underlayColor="white">
+          <View style={styles.uploadButton}>
+            <Text style={styles.buttonText}>Upload to ☁️</Text>
+          </View>
+        </TouchableOpacity>
+        {/* <Button
           buttonStyle={styles.basicButton}
           color="#841584"
           title="Upload to ☁️"
           onPress={this.handleUploadClick}
           disabled={this.state.isUploading}
-        />
+        /> */}
         {this.renderUploadProgress()}
         </View>
     );
