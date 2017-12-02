@@ -1,6 +1,7 @@
 // TODO: Cleanup
 // TODO: Option to delete photos after upload
 import React, { Component } from 'react';
+import sleep from 'sleep-promise';
 import {
   Platform,
   StyleSheet,
@@ -16,6 +17,8 @@ import { RNS3 } from 'react-native-aws3';
 
 
 import AwsOptions from './secrets';
+
+
 // TODO: import styles
 const styles = StyleSheet.create({
   container: {
@@ -62,6 +65,8 @@ export default class App extends Component {
     isUploading: false,
     fileLimit: 5,
     filesUploaded: 0,
+    filesSkipped: [],
+    showProgress: false,
   }
 
   getPhotos = () => {
@@ -74,6 +79,13 @@ export default class App extends Component {
         resolve(r.edges);
       })
       .catch(e => reject(e));
+    });
+  }
+
+  fileSkipped = (file) => {
+    console.warn('file skipped: ', file);
+    this.setState({
+      filesSkipped: this.state.filesSkipped.concat(file),
     });
   }
 
@@ -107,7 +119,7 @@ export default class App extends Component {
   }
 
   upload = async (file) => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
       const imgURI = file.node.image.uri;
       const fileToUpload = {
         uri: imgURI,
@@ -122,13 +134,18 @@ export default class App extends Component {
         };
         const response = await RNS3.put(fileToUpload, prefixedAwsOptions);
         if (response.status !== 201) {
-          reject(response);
+          this.fileSkipped({ file, error: response });
+          resolve();
         }
         this.setState({
           filesUploaded: ++this.state.filesUploaded,
         });
         resolve();
-      } catch (e) { reject(e); }
+      } catch (e) {
+        this.fileSkipped({ file, error: e });
+      } finally {
+        resolve();
+      }
     });
   }
 
@@ -152,36 +169,42 @@ export default class App extends Component {
 
   uploadPhotos = async () => {
     const photosToUpload = this.organizeFiles(this.state.selectedPhotos);
-    try {
-      await Promise.all(photosToUpload.map(p => this.upload(p)));
-    } catch (e) {
-      console.log('something went wrong while uploading: ', e);
-    } finally {
-      console.log('All done! :)');
-      this.setState({
-        isUploading: false,
-        selectedPhotos: [],
-        filesUploaded: 0,
-      });
+    await Promise.all(photosToUpload.map(p => this.upload(p)));
+
+    console.log('All done! :)');
+    if (this.state.filesSkipped.length) {
+      console.log('Files skipped with errors: ', this.state.filesSkipped);
     }
+    this.setState({
+      isUploading: false,
+      selectedPhotos: [],
+      filesUploaded: 0,
+    });
   }
 
   handleSelectPhotosClick = async () => {
     const fetchedPhotos = await this.getPhotos();
-    this.setState({ selectedPhotos: fetchedPhotos });
+    this.setState({
+      selectedPhotos: fetchedPhotos,
+      showProgress: true,
+    });
   }
 
   handleUploadClick = async () => {
     // TODO: UI Feedback improvements
     this.setState({ isUploading: true });
+    await sleep(50);
     this.uploadPhotos();
   }
 
   renderUploadProgress() {
     const { filesUploaded, selectedPhotos } = this.state;
-    return this.state.isUploading &&
+    const progressText = filesUploaded ?
+      `Files uploaded: ${filesUploaded} / ${selectedPhotos.length}` :
+      'Preparing files for upload';
+    return this.state.showProgress &&
       <Text>
-        Files uploaed: {filesUploaded} / {selectedPhotos.length}
+      {progressText}
       </Text>;
   }
   photosNumberChange = (value) => {
@@ -192,7 +215,7 @@ export default class App extends Component {
   render() {
     const selectText = this.state.selectedPhotos.length ?
       `${this.state.selectedPhotos.length} photos selected` :
-      'Select photos';
+      'Select files';
 
     return (
       <View style={styles.container}>
