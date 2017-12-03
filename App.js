@@ -13,10 +13,11 @@ import {
   Vibration,
 } from 'react-native';
 import moment from 'moment';
+import Popover, { PopoverTouchable } from 'react-native-modal-popover';
 import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
 import AwsOptions from './secrets';
-import Hamburger from 'react-native-hamburger';
+import Settings from './Settings';
 
 const VIBRATION_DURATION = 10000;
 const VIBRATION_PATTERN = [500, 1000, 500];
@@ -226,21 +227,6 @@ export default class App extends Component {
     });
   }
 
-  renderDrawer = () => {
-    return (
-      <View style={{
-        display: 'flex',
-        marginRight: 'auto',
-        padding: 20,
-      }}>
-        <Hamburger
-          active
-          type='cross'
-          onPress={this.handleMenuPress}
-        />
-      </View>
-    );
-  }
 
   render() {
     const { selectedPhotos, isUploading, fileLimit } = this.state;
@@ -258,7 +244,7 @@ export default class App extends Component {
 
     return (
         <View style={styles.container}>
-          {this.renderDrawer()}
+          <Settings />
           <Text style={styles.welcomeLarge}>
             📦
           </Text>
@@ -296,8 +282,6 @@ export default class App extends Component {
           </TouchableOpacity>
           {this.renderUploadProgress()}
         </View>
-
-
     );
   }
 }

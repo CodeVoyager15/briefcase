@@ -25,6 +25,11 @@ export default StyleSheet.create({
     textAlign: 'center',
     margin: 15,
   },
+  textM: {
+    fontSize: 40,
+    textAlign: 'center',
+    margin: 8,
+  },
   instructions: {
     textAlign: 'center',
     color: '#333333',
