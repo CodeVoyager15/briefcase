@@ -10,6 +10,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import BubbleMenu from './BubbleMenu';
 
 
+//TODO: Styles for bubble menu
+//TODO:  Toggle show/hide bubble menu
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -80,6 +82,7 @@ class Settings extends Component {
   )
 
 
+  //TODO: Rename and change icons
   _renderItems() {
     const noop = () => {};
     const icons = [
