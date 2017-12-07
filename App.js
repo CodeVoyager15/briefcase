@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Vibration,
 } from 'react-native';
+import Modal from 'react-native-modal';
 import moment from 'moment';
 import Popover, { PopoverTouchable } from 'react-native-modal-popover';
 import { RNS3 } from 'react-native-aws3';
@@ -30,6 +31,8 @@ const VIBRATION_PATTERN = [500, 1000, 500];
 //   successActionStatus: 201,
 // };
 // TODO: Add config menu
+
+
 export default class App extends Component {
 
   // TODO: Make limit configurable
@@ -42,21 +45,22 @@ export default class App extends Component {
     filesSkipped: [],
     showProgress: false,
     uploadCompleted: false,
+    isModalVisible: false,
   }
-  closeControlPanel = () => {
-    this._drawer.close();
-  };
-  openControlPanel = () => {
-    this._drawer.open();
-  };
 
+
+  _showModal = () => {
+    console.log('will show modal');
+    this.setState({ isModalVisible: true });
+  }
+  _hideModal = () => this.setState({ isModalVisible: false });
 
   getPhotos = () => {
     return new Promise((resolve, reject) => {
       CameraRoll.getPhotos({
         first: this.state.fileLimit,
         // FIXME: Currently, RN has a bug on android and assetType 'All'
-        // does not return Videos.
+        // does not return Videos. This only happend on Android
         // https://github.com/facebook/react-native/pull/16429
         assetType: 'All',
       })
@@ -283,10 +287,22 @@ export default class App extends Component {
 
     return (
         <View style={styles.container}>
-          <Settings />
+          <View style={{ flex: 1 }}>
+            <TouchableOpacity onPress={this._showModal}>
+              <Text>Show Modal</Text>
+            </TouchableOpacity>
+            <Modal isVisible={this.state.isModalVisible}>
+              <View style={{ flex: 1, width: 200, height: 100 }}>
+                <Text>Hello!</Text>
+              </View>
+            </Modal>
+          </View>
+
+          {/* <Settings /> */}
           <Text style={styles.welcomeLarge}>
             📦
           </Text>
+
           <Text style={styles.welcome}>
             Welcome to Petsbox!
           </Text>

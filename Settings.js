@@ -10,8 +10,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import BubbleMenu from './BubbleMenu';
 
 
-//TODO: Styles for bubble menu
-//TODO:  Toggle show/hide bubble menu
+// TODO: Styles for bubble menu
+// TODO:  Toggle show/hide bubble menu
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -45,6 +45,7 @@ class Settings extends Component {
   }
 
   _toggleMenuVisibility = () => {
+    console.log('visibility!');
     this.setState(({ show }) => ({
       show: !show,
     }));
@@ -67,7 +68,6 @@ class Settings extends Component {
     );
   }
 
-
   _renderOpenBtn = () => (
     <TouchableOpacity
       onPress={this._toggleMenuVisibility}
@@ -81,22 +81,21 @@ class Settings extends Component {
     </TouchableOpacity>
   )
 
-
-  //TODO: Rename and change icons
+  // TODO: Rename and change icons
   _renderItems() {
     const noop = () => {};
     const icons = [
       {
-        name: 'call',
-        action: noop,
+        name: 'hide',
+        action: () => console.log('hide'),
       },
       {
         name: 'search',
-        action: noop,
+        action: () => console.log('search'),
       },
       {
         name: 'send',
-        action: noop,
+        action: () => console.log('send'),
       },
     ];
 
@@ -115,8 +114,6 @@ class Settings extends Component {
     ));
     return items;
   }
-
 }
-
 
 module.exports = Settings;
