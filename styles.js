@@ -40,7 +40,7 @@ export default StyleSheet.create({
   },
   selectButton: {
     marginBottom: 10,
-    width: 240,
+    width: 120,
     alignItems: 'center',
     backgroundColor: '#2196F3',
     borderStyle: 'solid',
@@ -68,6 +68,6 @@ export default StyleSheet.create({
   buttonText: {
     padding: 20,
     color: 'white',
-    fontSize: 22,
+    fontSize: 16,
   },
 });

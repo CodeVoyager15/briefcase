@@ -35,6 +35,7 @@ export default class App extends Component {
   // TODO: Make limit configurable
   state = {
     selectedPhotos: [],
+    selectedVideos: [],
     isUploading: false,
     fileLimit: 5,
     filesUploaded: 0,
@@ -54,7 +55,24 @@ export default class App extends Component {
     return new Promise((resolve, reject) => {
       CameraRoll.getPhotos({
         first: this.state.fileLimit,
+        // FIXME: Currently, RN has a bug on android and assetType 'All'
+        // does not return Videos.
+        // https://github.com/facebook/react-native/pull/16429
         assetType: 'All',
+      })
+      .then(r => {
+        resolve(r.edges);
+      })
+      .catch(e => reject(e));
+    });
+  }
+
+
+  getVideos = () => {
+    return new Promise((resolve, reject) => {
+      CameraRoll.getPhotos({
+        first: this.state.fileLimit,
+        assetType: 'Videos',
       })
       .then(r => {
         resolve(r.edges);
@@ -164,6 +182,12 @@ export default class App extends Component {
   uploadPhotos = async () => {
     const photosToUpload = this.organizeFiles(this.state.selectedPhotos);
     await Promise.all(photosToUpload.map(p => this.upload(p)));
+    // this.onUploadCompleted();
+  }
+
+  uploadVideos = async () => {
+    const videosToUpload = this.organizeFiles(this.state.selectedVideos);
+    await Promise.all(videosToUpload.map(p => this.upload(p)));
     this.onUploadCompleted();
   }
 
@@ -175,23 +199,34 @@ export default class App extends Component {
     });
   }
 
+  handleSelectVideosClick = async () => {
+    const fetchedVideos = await this.getVideos();
+    this.setState({
+      selectedVideos: fetchedVideos,
+      showProgress: true,
+    });
+  }
+
   handleUploadClick = async () => {
     // TODO: UI Feedback improvements
+    console.log('uploading media');
     this.setState({ isUploading: true, filesUploaded: 0, filesSkipped: [] });
     await sleep(10);
-    this.uploadPhotos();
+    await this.uploadPhotos();
+    await this.uploadVideos();
   }
 
   renderUploadProgress() {
     const {
       filesUploaded,
       selectedPhotos,
+      selectedVideos,
       uploadCompleted,
       filesSkipped } = this.state;
     let progressText = '';
     if (!uploadCompleted) {
       progressText = filesUploaded ?
-      `Files uploaded: ${filesUploaded} / ${selectedPhotos.length}` :
+      `Files uploaded: ${filesUploaded} / ${selectedPhotos.length + selectedVideos.length}` :
       'Files prepared for upload';
     } else {
       progressText = `${filesUploaded} files uploaded. ${filesSkipped.length} files skipped.`;
@@ -229,10 +264,14 @@ export default class App extends Component {
 
 
   render() {
-    const { selectedPhotos, isUploading, fileLimit } = this.state;
-    const selectText = selectedPhotos.length ?
+    const { selectedPhotos, selectedVideos, isUploading, fileLimit } = this.state;
+    const selectPhotosText = selectedPhotos.length ?
       `${selectedPhotos.length} photos selected` :
-      'Select files';
+      'Select photos';
+
+    const selectVideosText = selectedVideos.length ?
+      `${selectedVideos.length} videos selected` :
+      'Select videos';
 
     const uploadText = isUploading ?
         'Uploading to ☁️' :
@@ -267,11 +306,18 @@ export default class App extends Component {
             underlayColor="white"
           >
             <View style={styles.selectButton}>
-              <Text style={styles.buttonText}>{selectText}</Text>
+              <Text style={styles.buttonText}>{selectPhotosText}</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={this.handleSelectPhotosClick}
+            onPress={this.handleSelectVideosClick}
+            underlayColor="white"
+          >
+            <View style={styles.selectButton}>
+              <Text style={styles.buttonText}>{selectVideosText}</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
             underlayColor="white"
             disabled={!!isUploading}
             onPress={this.handleUploadClick}
