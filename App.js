@@ -19,6 +19,7 @@ import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
 import AwsOptions from './secrets';
 import Settings from './Settings';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const VIBRATION_DURATION = 10000;
 const VIBRATION_PATTERN = [500, 1000, 500];
@@ -50,7 +51,6 @@ export default class App extends Component {
 
 
   _showModal = () => {
-    console.log('will show modal');
     this.setState({ isModalVisible: true });
   }
   _hideModal = () => this.setState({ isModalVisible: false });
@@ -247,7 +247,7 @@ export default class App extends Component {
     return !!filesSkipped.length &&
       (
         <ScrollView>
-          filesSkipped.map( info =>
+          filesSkipped.map( {info} =>
             <Text>
               info.title : info.error
             </Text>
@@ -266,6 +266,20 @@ export default class App extends Component {
     });
   }
 
+  renderSettingsModal() {
+    return (
+      <View style={{ display: 'flex', marginRight: 'auto', margin: 20 }}>
+        <TouchableOpacity onPress={this._showModal}>
+          <Icon
+            name="menu"
+            size={25}
+            color="black"
+          />
+          S3 Settings
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   render() {
     const { selectedPhotos, selectedVideos, isUploading, fileLimit } = this.state;
@@ -278,23 +292,37 @@ export default class App extends Component {
       'Select videos';
 
     const uploadText = isUploading ?
-        'Uploading to ☁️' :
-        'Upload to ☁️';
+      'Uploading to ☁️' :
+      'Upload to ☁️';
 
     const uploadingBtnStyle = isUploading ?
       styles.uploadButtonDisabled :
       styles.uploadButton;
 
+
     return (
         <View style={styles.container}>
-          <View style={{ flex: 1 }}>
+          <View style={{ display: 'flex', marginRight: 'auto', margin: 20 }}>
             <TouchableOpacity onPress={this._showModal}>
-              <Text>Show Modal</Text>
+              <Icon
+                name="menu"
+                size={25}
+                color="black"
+              />
             </TouchableOpacity>
-            <Modal isVisible={this.state.isModalVisible}>
-              <View style={{ flex: 1, width: 200, height: 100 }}>
-                <Text>Hello!</Text>
+            <Modal style={{ width: 200, height: 100 }} isVisible={this.state.isModalVisible}>
+              <View >
+                {/* {this.renderSettingsModal()} */}
+                <TouchableOpacity
+                  onPress={this._hideModal}
+                  underlayColor="white"
+                >
+                <View style={styles.selectButton}>
+                  <Text style={styles.buttonText}>HIIIDE</Text>
+                </View>
+                  </TouchableOpacity>
               </View>
+
             </Modal>
           </View>
 
