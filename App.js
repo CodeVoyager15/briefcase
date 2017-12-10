@@ -11,27 +11,18 @@ import {
   Slider,
   TouchableOpacity,
   Vibration,
+  TextInput,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
 import moment from 'moment';
-import Popover, { PopoverTouchable } from 'react-native-modal-popover';
 import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
 import AwsOptions from './secrets';
 import Settings from './Settings';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const VIBRATION_DURATION = 10000;
 const VIBRATION_PATTERN = [500, 1000, 500];
-// const AwsOptions = {
-//   keyPrefix: 'uploads/petsbox/',
-//   bucket: '*****',
-//   region: '******',
-//   accessKey: '*************',
-//   secretKey: '********************',
-//   successActionStatus: 201,
-// };
-// TODO: Add config menu
 
 
 export default class App extends Component {
@@ -247,7 +238,7 @@ export default class App extends Component {
     return !!filesSkipped.length &&
       (
         <ScrollView>
-          filesSkipped.map( {info} =>
+          filesSkipped.map(info =>
             <Text>
               info.title : info.error
             </Text>
@@ -266,18 +257,79 @@ export default class App extends Component {
     });
   }
 
+  // const AwsOptions = {
+//   keyPrefix: 'uploads/petsbox/',
+//   bucket: '*****',
+//   region: '******',
+//   accessKey: '*************',
+//   secretKey: '********************',
+//   successActionStatus: 201,
+// };
+// TODO: Add config menu
+
   renderSettingsModal() {
     return (
       <View style={{ display: 'flex', marginRight: 'auto', margin: 20 }}>
-        <TouchableOpacity onPress={this._showModal}>
-          <Icon
-            name="menu"
-            size={25}
-            color="black"
-          />
-          S3 Settings
-        </TouchableOpacity>
-      </View>
+            <TouchableOpacity onPress={this._showModal}>
+              <Icon
+                name="menu"
+                size={25}
+                color="black"
+              />
+            </TouchableOpacity>
+            <Modal style={styles.settingsModal} isVisible={this.state.isModalVisible}>
+              <View >
+                <TouchableOpacity
+                  onPress={this._hideModal}
+                  underlayColor="white"
+                >
+
+                <Icon
+                name="settings"
+                size={25}
+                color="white"
+                style={{ alignSelf: 'center' }}
+                >
+                </Icon>
+                <Text style={styles.textMW}> AWS S3 Settings </Text>
+                <Text style={styles.textS}> S3 Bucket name </Text>
+                <TextInput
+                  style={styles.inputTextWhite}
+                  onChangeText={(bucket) => this.setState({ bucket })}
+                  value={this.state.bucket}
+                />
+
+                <Text style={styles.textS}> Region </Text>
+                <TextInput
+                  style={styles.inputTextWhite}
+                  onChangeText={(region) => this.setState({ region })}
+                  value={this.state.region}
+                />
+
+                <Text style={styles.textS}> Access Key </Text>
+                <TextInput
+                  style={styles.inputTextWhite}
+                  onChangeText={(accessKey) => this.setState({ accessKey })}
+                  value={this.state.accessKey}
+                />
+
+                <Text style={styles.textS}> Secret Key </Text>
+                <TextInput
+                  style={styles.inputTextWhite}
+                  secureTextEntry={true}
+                  onChangeText={(secretKey) => this.setState({ secretKey })}
+                  value={this.state.secretKey}
+                />
+
+
+                <View style={styles.selectButton}>
+                  <Text style={styles.textS}>Save & Close</Text>
+                </View>
+                  </TouchableOpacity>
+              </View>
+
+            </Modal>
+          </View>
     );
   }
 
@@ -302,31 +354,7 @@ export default class App extends Component {
 
     return (
         <View style={styles.container}>
-          <View style={{ display: 'flex', marginRight: 'auto', margin: 20 }}>
-            <TouchableOpacity onPress={this._showModal}>
-              <Icon
-                name="menu"
-                size={25}
-                color="black"
-              />
-            </TouchableOpacity>
-            <Modal style={{ width: 200, height: 100 }} isVisible={this.state.isModalVisible}>
-              <View >
-                {/* {this.renderSettingsModal()} */}
-                <TouchableOpacity
-                  onPress={this._hideModal}
-                  underlayColor="white"
-                >
-                <View style={styles.selectButton}>
-                  <Text style={styles.buttonText}>HIIIDE</Text>
-                </View>
-                  </TouchableOpacity>
-              </View>
-
-            </Modal>
-          </View>
-
-          {/* <Settings /> */}
+          {this.renderSettingsModal()}
           <Text style={styles.welcomeLarge}>
             📦
           </Text>

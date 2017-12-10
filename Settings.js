@@ -53,7 +53,6 @@ class Settings extends Component {
 
   render() {
     const { show } = this.state;
-    const items = this._renderItems();
     const openBtn = this._renderOpenBtn();
 
     return (
@@ -80,40 +79,6 @@ class Settings extends Component {
       />
     </TouchableOpacity>
   )
-
-  // TODO: Rename and change icons
-  _renderItems() {
-    const noop = () => {};
-    const icons = [
-      {
-        name: 'hide',
-        action: () => console.log('hide'),
-      },
-      {
-        name: 'search',
-        action: () => console.log('search'),
-      },
-      {
-        name: 'send',
-        action: () => console.log('send'),
-      },
-    ];
-
-    const items = icons.map(({ name, action }, key) => (
-      <TouchableOpacity
-        onPress={action}
-        key={key}
-        style={styles.menuGeneralIcons}
-      >
-        <Icon
-          name={name}
-          size={30}
-          color="#fd0014"
-        />
-      </TouchableOpacity>
-    ));
-    return items;
-  }
 }
 
 module.exports = Settings;
