@@ -1,4 +1,3 @@
-// TODO: Cleanup
 // TODO: Option to delete photos after upload
 import React, { Component } from 'react';
 import sleep from 'sleep-promise';
@@ -19,15 +18,21 @@ import moment from 'moment';
 import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
 import AwsOptions from './secrets';
-import Settings from './Settings';
 
 const VIBRATION_DURATION = 10000;
 const VIBRATION_PATTERN = [500, 1000, 500];
 
+// const AwsOptions = {
+//   keyPrefix: 'uploads/petsbox/',
+//   bucket: '*****',
+//   region: '******',
+//   accessKey: '*************',
+//   secretKey: '********************',
+//   successActionStatus: 201,
+// };
 
 export default class App extends Component {
 
-  // TODO: Make limit configurable
   state = {
     selectedPhotos: [],
     selectedVideos: [],
@@ -45,7 +50,6 @@ export default class App extends Component {
     this.setState({ isModalVisible: true });
   }
   handleCloseModal = () => {
-    console.log('custom aws ', this.state.customAwsOptions);
     this.setState({ isModalVisible: false });
   }
 
@@ -250,25 +254,11 @@ export default class App extends Component {
       );
   }
 
-  handleMenuPress =() => {
-    console.log('menu pressed');
-  }
-
   photosNumberChange = (value) => {
     this.setState({
       fileLimit: value,
     });
   }
-
-  // const AwsOptions = {
-//   keyPrefix: 'uploads/petsbox/',
-//   bucket: '*****',
-//   region: '******',
-//   accessKey: '*************',
-//   secretKey: '********************',
-//   successActionStatus: 201,
-// };
-// TODO: Add config menu
 
   renderSettingsModal() {
     return (
