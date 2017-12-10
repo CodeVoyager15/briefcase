@@ -16,7 +16,7 @@ export default StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
   welcome: {
-    fontSize: 40,
+    fontSize: 30,
     textAlign: 'center',
     margin: 10,
   },
@@ -69,6 +69,7 @@ export default StyleSheet.create({
   },
   uploadButton: {
     marginBottom: 30,
+    marginTop: 10,
     width: 200,
     alignItems: 'center',
     backgroundColor: 'purple',
@@ -78,6 +79,7 @@ export default StyleSheet.create({
   },
   uploadButtonDisabled: {
     marginBottom: 30,
+    marginTop: 10,
     width: 200,
     alignItems: 'center',
     backgroundColor: 'lightgray',

@@ -38,13 +38,16 @@ export default class App extends Component {
     showProgress: false,
     uploadCompleted: false,
     isModalVisible: false,
+    customAwsOptions: {},
   }
-
 
   _showModal = () => {
     this.setState({ isModalVisible: true });
   }
-  _hideModal = () => this.setState({ isModalVisible: false });
+  handleCloseModal = () => {
+    console.log('custom aws ', this.state.customAwsOptions);
+    this.setState({ isModalVisible: false });
+  }
 
   getPhotos = () => {
     return new Promise((resolve, reject) => {
@@ -61,7 +64,6 @@ export default class App extends Component {
       .catch(e => reject(e));
     });
   }
-
 
   getVideos = () => {
     return new Promise((resolve, reject) => {
@@ -124,6 +126,7 @@ export default class App extends Component {
         const folderPrefix = file.folder;
         const prefixedAwsOptions = {
           ...AwsOptions,
+          // ...this.state.customAwsOptions, // Uncomment to override
           keyPrefix: AwsOptions.keyPrefix + folderPrefix,
         };
         const response = await RNS3.put(fileToUpload, prefixedAwsOptions);
@@ -275,13 +278,13 @@ export default class App extends Component {
                 name="menu"
                 size={25}
                 color="black"
+                style={{ marginTop: 40 }}
               />
             </TouchableOpacity>
             <Modal style={styles.settingsModal} isVisible={this.state.isModalVisible}>
               <View >
                 <TouchableOpacity
-                  onPress={this._hideModal}
-                  underlayColor="white"
+                  onPress={this.handleCloseModal}
                 >
 
                 <Icon
@@ -295,39 +298,55 @@ export default class App extends Component {
                 <Text style={styles.textS}> S3 Bucket name </Text>
                 <TextInput
                   style={styles.inputTextWhite}
-                  onChangeText={(bucket) => this.setState({ bucket })}
+                  onChangeText={(bucket) => this.setState({
+                    customAwsOptions: {
+                      ...this.state.customAwsOptions,
+                      bucket,
+                    },
+                  })}
                   value={this.state.bucket}
                 />
 
                 <Text style={styles.textS}> Region </Text>
                 <TextInput
                   style={styles.inputTextWhite}
-                  onChangeText={(region) => this.setState({ region })}
+                  onChangeText={(region) => this.setState({
+                    customAwsOptions: {
+                      ...this.state.customAwsOptions,
+                      region,
+                    },
+                  })}
                   value={this.state.region}
                 />
-
                 <Text style={styles.textS}> Access Key </Text>
                 <TextInput
                   style={styles.inputTextWhite}
-                  onChangeText={(accessKey) => this.setState({ accessKey })}
+                  onChangeText={(accessKey) => this.setState({
+                    customAwsOptions: {
+                      ...this.state.customAwsOptions,
+                      accessKey,
+                    },
+                  })}
                   value={this.state.accessKey}
                 />
-
                 <Text style={styles.textS}> Secret Key </Text>
                 <TextInput
                   style={styles.inputTextWhite}
                   secureTextEntry={true}
-                  onChangeText={(secretKey) => this.setState({ secretKey })}
+                  onChangeText={(secretKey) => this.setState({
+                    customAwsOptions: {
+                      ...this.state.customAwsOptions,
+                      secretKey,
+                    },
+                  })}
                   value={this.state.secretKey}
                 />
-
 
                 <View style={styles.selectButton}>
                   <Text style={styles.textS}>Save & Close</Text>
                 </View>
-                  </TouchableOpacity>
+                </TouchableOpacity>
               </View>
-
             </Modal>
           </View>
     );
@@ -360,7 +379,7 @@ export default class App extends Component {
           </Text>
 
           <Text style={styles.welcome}>
-            Welcome to Petsbox!
+            Welcome to Briefcase!
           </Text>
           <Text style={{ margin: 20 }}>
             Select number of files to upload : {fileLimit}
