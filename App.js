@@ -46,7 +46,8 @@ export default class App extends Component {
     uploadCompleted: false,
     isModalVisible: false,
     customAwsOptions: {},
-    totalUploadSize: 0,
+    totalPhotosUploadSize: 0,
+    totalVideosUploadSize: 0,
   }
 
   _showModal = () => {
@@ -209,10 +210,9 @@ export default class App extends Component {
 
   handleSelectPhotosClick = async () => {
     const fetchedPhotos = await this.getPhotos();
-    const currentSize = this.state.totalUploadSize;
     try {
       const totalSize = await this.getTotalSizeInMB(fetchedPhotos);
-      this.setState({ totalUploadSize: currentSize + totalSize });
+      this.setState({ totalPhotosUploadSize: totalSize });
     } catch (e) {
       console.log('something went wroνg ', e);
     }
@@ -225,11 +225,10 @@ export default class App extends Component {
 
   handleSelectVideosClick = async () => {
     const fetchedVideos = await this.getVideos();
-    const currentSize = this.state.totalUploadSize;
     try {
       // TODO: for large videos, stream the file size instead
-      const totalSize = await this.getTotalSizeInMB(fetchedVideos) + currentSize;
-      this.setState({ totalUploadSize: totalSize });
+      const totalSize = await this.getTotalSizeInMB(fetchedVideos);
+      this.setState({ totalVideosUploadSize: totalSize });
     } catch (e) {
       console.log('something went wroνg ', e);
     }
@@ -371,7 +370,14 @@ export default class App extends Component {
   }
 
   render() {
-    const { selectedPhotos, selectedVideos, isUploading, fileLimit } = this.state;
+    const {
+      selectedPhotos,
+      selectedVideos,
+      isUploading,
+      fileLimit,
+      totalPhotosUploadSize,
+      totalVideosUploadSize,
+    } = this.state;
     const selectPhotosText = selectedPhotos.length ?
       `${selectedPhotos.length} photos selected` :
       'Select photos';
@@ -403,7 +409,7 @@ export default class App extends Component {
             Select number of files to upload : {fileLimit}
           </Text>
           <Text>
-            Total size: {this.state.totalUploadSize} MB
+            Total size: {totalPhotosUploadSize + totalVideosUploadSize} MB
           </Text>
 
           <Slider
