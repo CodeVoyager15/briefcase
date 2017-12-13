@@ -67,7 +67,6 @@ export default class App extends Component {
         assetType: 'All',
       })
       .then(r => {
-        console.log('-=-=-=-= files fetched ', r.edges.length);
         resolve(r.edges);
       })
       .catch(e => reject(e));
@@ -189,7 +188,6 @@ export default class App extends Component {
   uploadPhotos = async () => {
     const photosToUpload = this.organizeFiles(this.state.selectedPhotos);
     await Promise.all(photosToUpload.map(p => this.upload(p)));
-    // this.onUploadCompleted();
   }
 
   uploadVideos = async () => {
@@ -214,7 +212,6 @@ export default class App extends Component {
     const currentSize = this.state.totalUploadSize;
     try {
       const totalSize = await this.getTotalSizeInMB(fetchedPhotos);
-      console.log(`Total size ${totalSize}MB`);
       this.setState({ totalUploadSize: currentSize + totalSize });
     } catch (e) {
       console.log('something went wroνg ', e);
@@ -223,7 +220,6 @@ export default class App extends Component {
     this.setState({
       selectedPhotos: fetchedPhotos,
       showProgress: true,
-      // totalSize: totalSize + fetchedPhotos.
     });
   }
 
@@ -234,7 +230,6 @@ export default class App extends Component {
       // TODO: for large videos, stream the file size instead
       const totalSize = await this.getTotalSizeInMB(fetchedVideos) + currentSize;
       this.setState({ totalUploadSize: totalSize });
-      console.log(`Total size ${totalSize}MB`);
     } catch (e) {
       console.log('something went wroνg ', e);
     }
@@ -245,8 +240,6 @@ export default class App extends Component {
   }
 
   handleUploadClick = async () => {
-    // TODO: UI Feedback improvements
-    console.log('uploading media');
     this.setState({ isUploading: true, filesUploaded: 0, filesSkipped: [] });
     await sleep(10);
     await this.uploadPhotos();
