@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
+import base64 from 'base-64';
+import RNFetchBlob from 'react-native-fetch-blob';
 import moment from 'moment';
 import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
@@ -44,6 +46,7 @@ export default class App extends Component {
     uploadCompleted: false,
     isModalVisible: false,
     customAwsOptions: {},
+    totalUploadSize: 0,
   }
 
   _showModal = () => {
@@ -55,6 +58,7 @@ export default class App extends Component {
 
   getPhotos = () => {
     return new Promise((resolve, reject) => {
+      console.log('fetching a total files ', this.state.fileLimit);
       CameraRoll.getPhotos({
         first: this.state.fileLimit,
         // FIXME: Currently, RN has a bug on android and assetType 'All'
@@ -63,6 +67,7 @@ export default class App extends Component {
         assetType: 'All',
       })
       .then(r => {
+        console.log('-=-=-=-= files fetched ', r.edges.length);
         resolve(r.edges);
       })
       .catch(e => reject(e));
@@ -193,16 +198,46 @@ export default class App extends Component {
     this.onUploadCompleted();
   }
 
+  getTotalSizeInMB = async (files) => {
+    let size = 0;
+    await Promise.all(files.map(async(f) => {
+      const encodedData = await RNFetchBlob.fs.readFile(f.node.image.uri, 'base64');
+      const decodedData = base64.decode(encodedData);
+      size += decodedData.length;
+      return;
+    }));
+    return Number((size / 1000 / 1000).toFixed(2));
+  }
+
   handleSelectPhotosClick = async () => {
     const fetchedPhotos = await this.getPhotos();
+    const currentSize = this.state.totalUploadSize;
+    try {
+      const totalSize = await this.getTotalSizeInMB(fetchedPhotos);
+      console.log(`Total size ${totalSize}MB`);
+      this.setState({ totalUploadSize: currentSize + totalSize });
+    } catch (e) {
+      console.log('something went wroνg ', e);
+    }
+
     this.setState({
       selectedPhotos: fetchedPhotos,
       showProgress: true,
+      // totalSize: totalSize + fetchedPhotos.
     });
   }
 
   handleSelectVideosClick = async () => {
     const fetchedVideos = await this.getVideos();
+    const currentSize = this.state.totalUploadSize;
+    try {
+      // TODO: for large videos, stream the file size instead
+      const totalSize = await this.getTotalSizeInMB(fetchedVideos) + currentSize;
+      this.setState({ totalUploadSize: totalSize });
+      console.log(`Total size ${totalSize}MB`);
+    } catch (e) {
+      console.log('something went wroνg ', e);
+    }
     this.setState({
       selectedVideos: fetchedVideos,
       showProgress: true,
@@ -374,14 +409,19 @@ export default class App extends Component {
           <Text style={{ margin: 20 }}>
             Select number of files to upload : {fileLimit}
           </Text>
+          <Text>
+            Total size: {this.state.totalUploadSize} MB
+          </Text>
+
           <Slider
-          maximumValue={2000}
-          minimumValue={1}
-          step={10}
-          onValueChange={this.photosNumberChange}
-          onSlidingComplete={this.photosNumberChange}
-          style={{ width: 300, height: 50, marginBottom: 60 }}
+            maximumValue={2000}
+            minimumValue={1}
+            step={10}
+            onValueChange={this.photosNumberChange}
+            onSlidingComplete={this.photosNumberChange}
+            style={{ width: 300, height: 50, marginBottom: 60 }}
           />
+
           <TouchableOpacity
             onPress={this.handleSelectPhotosClick}
             underlayColor="white"
@@ -403,6 +443,7 @@ export default class App extends Component {
             disabled={!!isUploading}
             onPress={this.handleUploadClick}
           >
+
             <View style={uploadingBtnStyle}>
               <Text style={styles.buttonText}>{uploadText}</Text>
             </View>
