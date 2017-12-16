@@ -369,6 +369,22 @@ export default class App extends Component {
     );
   }
 
+  renderAwsWarning = () => {
+    return !(AwsOptions.bucket !== 'your-bucket-name' && this.state.customAwsOptions) &&
+      <View>
+        <Icon
+          name="warning"
+          size={15}
+          color="black"
+          style={{ alignSelf: 'center' }}
+          >
+        </Icon>
+        <Text style={styles.warning}>
+          You need to provide AWS settings, in the options menu
+        </Text>
+      </View>;
+  }
+
   render() {
     const {
       selectedPhotos,
@@ -411,7 +427,7 @@ export default class App extends Component {
           <Text>
             Total size: {totalPhotosUploadSize + totalVideosUploadSize} MB
           </Text>
-
+          {this.renderAwsWarning()}
           <Slider
             maximumValue={2000}
             minimumValue={1}

@@ -42,6 +42,10 @@ export default StyleSheet.create({
     margin: 4,
     color: 'white',
   },
+  warning: {
+    color: '#755700',
+    fontSize: 10,
+  },
   instructions: {
     textAlign: 'center',
     color: '#333333',
