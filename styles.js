@@ -16,14 +16,14 @@ export default StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
   welcome: {
-    fontSize: 30,
+    fontSize: 20,
     textAlign: 'center',
     margin: 10,
   },
   welcomeLarge: {
-    fontSize: 50,
+    fontSize: 30,
     textAlign: 'center',
-    margin: 15,
+    margin: 10,
   },
   textM: {
     fontSize: 30,

@@ -51,9 +51,11 @@ export default class App extends Component {
   }
 
   _showModal = () => {
+    console.log('open modal');
     this.setState({ isModalVisible: true });
   }
   handleCloseModal = () => {
+    console.log('close modal');
     this.setState({ isModalVisible: false });
   }
 
@@ -187,11 +189,13 @@ export default class App extends Component {
   }
 
   uploadPhotos = async () => {
+    console.log('uploading photos');
     const photosToUpload = this.organizeFiles(this.state.selectedPhotos);
     await Promise.all(photosToUpload.map(p => this.upload(p)));
   }
 
   uploadVideos = async () => {
+    console.log('uploading videos');
     const videosToUpload = this.organizeFiles(this.state.selectedVideos);
     await Promise.all(videosToUpload.map(p => this.upload(p)));
     this.onUploadCompleted();
@@ -210,12 +214,12 @@ export default class App extends Component {
 
   handleSelectPhotosClick = async () => {
     const fetchedPhotos = await this.getPhotos();
-    try {
-      const totalSize = await this.getTotalSizeInMB(fetchedPhotos);
-      this.setState({ totalPhotosUploadSize: totalSize });
-    } catch (e) {
-      console.log('something went wroνg ', e);
-    }
+    // try {
+    //   const totalSize = await this.getTotalSizeInMB(fetchedPhotos);
+    //   this.setState({ totalPhotosUploadSize: totalSize });
+    // } catch (e) {
+    //   console.log('something went wroνg ', e);
+    // }
 
     this.setState({
       selectedPhotos: fetchedPhotos,
@@ -225,13 +229,13 @@ export default class App extends Component {
 
   handleSelectVideosClick = async () => {
     const fetchedVideos = await this.getVideos();
-    try {
-      // TODO: for large videos, stream the file size instead
-      const totalSize = await this.getTotalSizeInMB(fetchedVideos);
-      this.setState({ totalVideosUploadSize: totalSize });
-    } catch (e) {
-      console.log('something went wroνg ', e);
-    }
+    // try {
+    //   // TODO: for large videos, stream the file size instead
+    //   const totalSize = await this.getTotalSizeInMB(fetchedVideos);
+    //   this.setState({ totalVideosUploadSize: totalSize });
+    // } catch (e) {
+    //   console.log('something went wroνg ', e);
+    // }
     this.setState({
       selectedVideos: fetchedVideos,
       showProgress: true,
@@ -424,9 +428,9 @@ export default class App extends Component {
           <Text style={{ margin: 20 }}>
             Select number of files to upload : {fileLimit}
           </Text>
-          <Text>
+          {/* <Text>
             Total size: {totalPhotosUploadSize + totalVideosUploadSize} MB
-          </Text>
+          </Text> */}
           {this.renderAwsWarning()}
           <Slider
             maximumValue={2000}
@@ -436,7 +440,7 @@ export default class App extends Component {
             onSlidingComplete={this.photosNumberChange}
             style={{ width: 300, height: 50, marginBottom: 60 }}
           />
-
+          {this.renderUploadProgress()}
           <TouchableOpacity
             onPress={this.handleSelectPhotosClick}
             underlayColor="white"
@@ -458,12 +462,11 @@ export default class App extends Component {
             disabled={!!isUploading}
             onPress={this.handleUploadClick}
           >
-
             <View style={uploadingBtnStyle}>
               <Text style={styles.buttonText}>{uploadText}</Text>
             </View>
           </TouchableOpacity>
-          {this.renderUploadProgress()}
+
         </View>
     );
   }
