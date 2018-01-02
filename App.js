@@ -2,15 +2,14 @@
 import React, { Component } from 'react';
 import sleep from 'sleep-promise';
 import {
-  Platform,
   Text,
   View,
   CameraRoll,
-  Button,
   Slider,
   TouchableOpacity,
   Vibration,
   TextInput,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
@@ -50,10 +49,7 @@ export default class App extends Component {
     totalVideosUploadSize: 0,
   }
 
-  _showModal = () => {
-    console.log('open modal');
-    this.setState({ isModalVisible: true });
-  }
+
   handleCloseModal = () => {
     console.log('close modal');
     this.setState({ isModalVisible: false });
@@ -69,7 +65,7 @@ export default class App extends Component {
         // https://github.com/facebook/react-native/pull/16429
         assetType: 'All',
       })
-      .then(r => {
+      .then((r) => {
         resolve(r.edges);
       })
       .catch(e => reject(e));
@@ -82,7 +78,7 @@ export default class App extends Component {
         first: this.state.fileLimit,
         assetType: 'Videos',
       })
-      .then(r => {
+      .then((r) => {
         resolve(r.edges);
       })
       .catch(e => reject(e));
@@ -164,7 +160,7 @@ export default class App extends Component {
   }
 
   organizeFiles = (files) => {
-    const result = files.map(file => {
+    const result = files.map((file) => {
       const date = file.node.timestamp;
       const prefix = this.getPrefixFolderByDate(date);
       return {
@@ -188,9 +184,9 @@ export default class App extends Component {
     console.log('All done! :)');
   }
 
-  uploadPhotos = async () => {
+  uploadPhotos = async (photos) => {
     console.log('uploading photos');
-    const photosToUpload = this.organizeFiles(this.state.selectedPhotos);
+    const photosToUpload = this.organizeFiles(photos);
     await Promise.all(photosToUpload.map(p => this.upload(p)));
   }
 
@@ -203,13 +199,17 @@ export default class App extends Component {
 
   getTotalSizeInMB = async (files) => {
     let size = 0;
-    await Promise.all(files.map(async(f) => {
+    await Promise.all(files.map(async (f) => {
       const encodedData = await RNFetchBlob.fs.readFile(f.node.image.uri, 'base64');
       const decodedData = base64.decode(encodedData);
       size += decodedData.length;
-      return;
     }));
     return Number((size / 1000 / 1000).toFixed(2));
+  }
+
+  _showModal = () => {
+    console.log('open modal');
+    this.setState({ isModalVisible: true });
   }
 
   handleSelectPhotosClick = async () => {
@@ -277,9 +277,9 @@ export default class App extends Component {
       (
         <ScrollView>
           filesSkipped.map(info =>
-            <Text>
+          <Text>
               info.title : info.error
-            </Text>
+          </Text>
           )
         </ScrollView>
       );
@@ -294,82 +294,81 @@ export default class App extends Component {
   renderSettingsModal() {
     return (
       <View style={{ display: 'flex', marginRight: 'auto', margin: 20 }}>
-            <TouchableOpacity onPress={this._showModal}>
-              <Icon
-                name="menu"
-                size={25}
-                color="black"
-                style={{ marginTop: 40 }}
-              />
-            </TouchableOpacity>
-            <Modal style={styles.settingsModal} isVisible={this.state.isModalVisible}>
-              <View >
-                <TouchableOpacity
-                  onPress={this.handleCloseModal}
-                >
+        <TouchableOpacity onPress={this._showModal}>
+          <Icon
+            name="menu"
+            size={25}
+            color="black"
+            style={{ marginTop: 40 }}
+          />
+        </TouchableOpacity>
+        <Modal style={styles.settingsModal} isVisible={this.state.isModalVisible}>
+          <View >
+            <TouchableOpacity
+              onPress={this.handleCloseModal}
+            >
 
-                <Icon
+              <Icon
                 name="settings"
                 size={25}
                 color="white"
                 style={{ alignSelf: 'center' }}
-                >
-                </Icon>
-                <Text style={styles.textMW}> AWS S3 Settings </Text>
-                <Text style={styles.textS}> S3 Bucket name </Text>
-                <TextInput
-                  style={styles.inputTextWhite}
-                  onChangeText={(bucket) => this.setState({
-                    customAwsOptions: {
-                      ...this.state.customAwsOptions,
-                      bucket,
-                    },
-                  })}
-                  value={this.state.bucket}
-                />
+              />
+              <Text style={styles.textMW}> AWS S3 Settings </Text>
+              <Text style={styles.textS}> S3 Bucket name </Text>
+              <TextInput
+                style={styles.inputTextWhite}
+                onChangeText={bucket => this.setState({
+                  customAwsOptions: {
+                    ...this.state.customAwsOptions,
+                    bucket,
+                  },
+                })}
+                value={this.state.bucket}
+              />
 
-                <Text style={styles.textS}> Region </Text>
-                <TextInput
-                  style={styles.inputTextWhite}
-                  onChangeText={(region) => this.setState({
-                    customAwsOptions: {
-                      ...this.state.customAwsOptions,
-                      region,
-                    },
-                  })}
-                  value={this.state.region}
-                />
-                <Text style={styles.textS}> Access Key </Text>
-                <TextInput
-                  style={styles.inputTextWhite}
-                  onChangeText={(accessKey) => this.setState({
-                    customAwsOptions: {
-                      ...this.state.customAwsOptions,
-                      accessKey,
-                    },
-                  })}
-                  value={this.state.accessKey}
-                />
-                <Text style={styles.textS}> Secret Key </Text>
-                <TextInput
-                  style={styles.inputTextWhite}
-                  secureTextEntry={true}
-                  onChangeText={(secretKey) => this.setState({
-                    customAwsOptions: {
-                      ...this.state.customAwsOptions,
-                      secretKey,
-                    },
-                  })}
-                  value={this.state.secretKey}
-                />
+              <Text style={styles.textS}> Region </Text>
+              <TextInput
+                style={styles.inputTextWhite}
+                onChangeText={region => this.setState({
+                  customAwsOptions: {
+                    ...this.state.customAwsOptions,
+                    region,
+                  },
+                })}
+                value={this.state.region}
+              />
+              <Text style={styles.textS}> Access Key </Text>
+              <TextInput
+                style={styles.inputTextWhite}
+                onChangeText={accessKey => this.setState({
+                  customAwsOptions: {
+                    ...this.state.customAwsOptions,
+                    accessKey,
+                  },
+                })}
+                value={this.state.accessKey}
+              />
+              <Text style={styles.textS}> Secret Key </Text>
+              <TextInput
+                style={styles.inputTextWhite}
+                secureTextEntry
+                onChangeText={secretKey => this.setState({
+                  customAwsOptions: {
+                    ...this.state.customAwsOptions,
+                    secretKey,
+                  },
+                })}
+                value={this.state.secretKey}
+              />
 
-                <View style={styles.selectButton}>
-                  <Text style={styles.textS}>Save & Close</Text>
-                </View>
-                </TouchableOpacity>
+              <View style={styles.selectButton}>
+                <Text style={styles.textS}>Save & Close</Text>
               </View>
-            </Modal>
+            </TouchableOpacity>
           </View>
+        </Modal>
+      </View>
     );
   }
 
@@ -381,8 +380,7 @@ export default class App extends Component {
           size={15}
           color="black"
           style={{ alignSelf: 'center' }}
-          >
-        </Icon>
+        />
         <Text style={styles.warning}>
           You need to provide AWS settings, in the options menu
         </Text>
@@ -416,58 +414,58 @@ export default class App extends Component {
 
 
     return (
-        <View style={styles.container}>
-          {this.renderSettingsModal()}
-          <Text style={styles.welcomeLarge}>
+      <View style={styles.container}>
+        {this.renderSettingsModal()}
+        <Text style={styles.welcomeLarge}>
             📦
-          </Text>
+        </Text>
 
-          <Text style={styles.welcome}>
+        <Text style={styles.welcome}>
             Welcome to Briefcase!
-          </Text>
-          <Text style={{ margin: 20 }}>
+        </Text>
+        <Text style={{ margin: 20 }}>
             Select number of files to upload : {fileLimit}
-          </Text>
-          {/* <Text>
+        </Text>
+        {/* <Text>
             Total size: {totalPhotosUploadSize + totalVideosUploadSize} MB
           </Text> */}
-          {this.renderAwsWarning()}
-          <Slider
-            maximumValue={2000}
-            minimumValue={1}
-            step={10}
-            onValueChange={this.photosNumberChange}
-            onSlidingComplete={this.photosNumberChange}
-            style={{ width: 300, height: 50, marginBottom: 60 }}
-          />
-          {this.renderUploadProgress()}
-          <TouchableOpacity
-            onPress={this.handleSelectPhotosClick}
-            underlayColor="white"
-          >
-            <View style={styles.selectButton}>
-              <Text style={styles.buttonText}>{selectPhotosText}</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={this.handleSelectVideosClick}
-            underlayColor="white"
-          >
-            <View style={styles.selectButton}>
-              <Text style={styles.buttonText}>{selectVideosText}</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            underlayColor="white"
-            disabled={!!isUploading}
-            onPress={this.handleUploadClick}
-          >
-            <View style={uploadingBtnStyle}>
-              <Text style={styles.buttonText}>{uploadText}</Text>
-            </View>
-          </TouchableOpacity>
+        {this.renderAwsWarning()}
+        <Slider
+          maximumValue={2000}
+          minimumValue={1}
+          step={10}
+          onValueChange={this.photosNumberChange}
+          onSlidingComplete={this.photosNumberChange}
+          style={{ width: 300, height: 50, marginBottom: 60 }}
+        />
+        {this.renderUploadProgress()}
+        <TouchableOpacity
+          onPress={this.handleSelectPhotosClick}
+          underlayColor="white"
+        >
+          <View style={styles.selectButton}>
+            <Text style={styles.buttonText}>{selectPhotosText}</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={this.handleSelectVideosClick}
+          underlayColor="white"
+        >
+          <View style={styles.selectButton}>
+            <Text style={styles.buttonText}>{selectVideosText}</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          underlayColor="white"
+          disabled={!!isUploading}
+          onPress={this.handleUploadClick}
+        >
+          <View style={uploadingBtnStyle}>
+            <Text style={styles.buttonText}>{uploadText}</Text>
+          </View>
+        </TouchableOpacity>
 
-        </View>
+      </View>
     );
   }
 }
