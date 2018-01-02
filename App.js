@@ -19,7 +19,7 @@ import moment from 'moment';
 import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
 import AwsOptions from './secrets';
-import { getItem, getItems, setItem, setItemsObj } from './AyncStoreHelper';
+import { getItem, getItems, setItem, setItemsObj } from './AsyncStoreHelper';
 
 const VIBRATION_DURATION = 10000;
 const VIBRATION_PATTERN = [500, 1000, 500];
@@ -86,11 +86,14 @@ export default class App extends Component {
     });
   }
 
-  fileSkipped = (file) => {
+  fileSkipped = async (file) => {
     console.warn('file skipped: ', file);
+    const filesSkippedSoFar = getItem('filesSkipped');
+    const filesSkipped = filesSkippedSoFar.concat(file);
     this.setState({
-      filesSkipped: this.state.filesSkipped.concat(file),
+      filesSkipped,
     });
+    await setItem('filesSkipped', filesSkipped);
   }
 
   toggleModal = () => {
@@ -139,12 +142,15 @@ export default class App extends Component {
         };
         const response = await RNS3.put(fileToUpload, prefixedAwsOptions);
         if (response.status !== 201) {
-          this.fileSkipped({ file, error: response });
+          await this.fileSkipped({ file, error: response });
           resolve();
         }
+        const filesUploadedSoFar = await getItem('filesUploaded');
+        const filesUploaded = ++filesUploadedSoFar;
         this.setState({
-          filesUploaded: ++this.state.filesUploaded,
+          filesUploaded,
         });
+        await setItem('filesUploaded', filesUploaded);
         resolve();
       } catch (e) {
         this.fileSkipped({ file, error: e });
@@ -172,7 +178,7 @@ export default class App extends Component {
     return result;
   }
 
-  onUploadCompleted = () => {
+  onUploadCompleted = async () => {
     Vibration.vibrate(VIBRATION_PATTERN);
     if (this.state.filesSkipped.length) {
       console.log('Files skipped with errors: ', this.state.filesSkipped);
@@ -182,19 +188,25 @@ export default class App extends Component {
       selectedPhotos: [],
       uploadCompleted: true,
     });
+    await setItemsObj({
+      isUploading: false,
+      selectedPhotos: [],
+      uploadCompleted: true,
+    });
+
     console.log('All done! :)');
   }
 
-  uploadPhotos = async (photos) => {
-    console.log('uploading photos');
-    const photosToUpload = this.organizeFiles(photos);
-    await Promise.all(photosToUpload.map(p => this.upload(p)));
+  uploadPhotos = async () => {
+    const photosToUpload = await getItem('selectedPhotos');
+    const organizedPhotos = this.organizeFiles(photosToUpload);
+    await Promise.all(organizedPhotos.map(p => this.upload(p)));
   }
 
   uploadVideos = async () => {
-    console.log('uploading videos');
-    const videosToUpload = this.organizeFiles(this.state.selectedVideos);
-    await Promise.all(videosToUpload.map(p => this.upload(p)));
+    const videosToUpload = await getItem('selectedVideos');
+    const organizedVideos = this.organizeFiles(videosToUpload);
+    await Promise.all(organizedVideos.map(p => this.upload(p)));
     this.onUploadCompleted();
   }
 
@@ -226,6 +238,11 @@ export default class App extends Component {
       selectedPhotos: fetchedPhotos,
       showProgress: true,
     });
+
+    await setItemsObj({
+      selectedPhotos: fetchedPhotos,
+      showProgress: true,
+    });
   }
 
   handleSelectVideosClick = async () => {
@@ -238,6 +255,10 @@ export default class App extends Component {
     //   console.log('something went wroνg ', e);
     // }
     this.setState({
+      selectedVideos: fetchedVideos,
+      showProgress: true,
+    });
+    await setItemsObj({
       selectedVideos: fetchedVideos,
       showProgress: true,
     });
@@ -287,10 +308,11 @@ export default class App extends Component {
       );
   }
 
-  photosNumberChange = (value) => {
+  photosNumberChange = async (value) => {
     this.setState({
       fileLimit: value,
     });
+    await setItem('fileLimit', value);
   }
 
   renderSettingsModal() {
@@ -320,47 +342,96 @@ export default class App extends Component {
               <Text style={styles.textS}> S3 Bucket name </Text>
               <TextInput
                 style={styles.inputTextWhite}
-                onChangeText={bucket => this.setState({
-                  customAwsOptions: {
-                    ...this.state.customAwsOptions,
-                    bucket,
-                  },
-                })}
+                onChangeText={async (bucket) => {
+                  const customAwsOptions = await getItem('customAwsOptions');
+                  this.setState({
+                    customAwsOptions: {
+                      ...customAwsOptions,
+                      bucket,
+                    },
+                  });
+                  await setItemsObj(
+                    {
+                      customAwsOptions: {
+                        ...customAwsOptions,
+                        bucket,
+                      },
+                    },
+                  );
+                }
+
+              }
                 value={this.state.bucket}
               />
 
               <Text style={styles.textS}> Region </Text>
               <TextInput
                 style={styles.inputTextWhite}
-                onChangeText={region => this.setState({
-                  customAwsOptions: {
-                    ...this.state.customAwsOptions,
-                    region,
-                  },
-                })}
+                onChangeText={async (region) => {
+                  const customAwsOptions = await getItem('customAwsOptions');
+                  this.setState({
+                    customAwsOptions: {
+                      ...customAwsOptions,
+                      region,
+                    },
+                  });
+                  await setItemsObj(
+                    {
+                      customAwsOptions: {
+                        ...customAwsOptions,
+                        region,
+                      },
+                    },
+                  );
+                }
+              }
                 value={this.state.region}
               />
               <Text style={styles.textS}> Access Key </Text>
               <TextInput
                 style={styles.inputTextWhite}
-                onChangeText={accessKey => this.setState({
-                  customAwsOptions: {
-                    ...this.state.customAwsOptions,
-                    accessKey,
-                  },
-                })}
+                onChangeText={async (accessKey) => {
+                  const customAwsOptions = await getItem('customAwsOptions');
+                  this.setState({
+                    customAwsOptions: {
+                      ...customAwsOptions,
+                      accessKey,
+                    },
+                  });
+                  await setItemsObj(
+                    {
+                      customAwsOptions: {
+                        ...customAwsOptions,
+                        accessKey,
+                      },
+                    },
+                  );
+                }
+              }
                 value={this.state.accessKey}
               />
               <Text style={styles.textS}> Secret Key </Text>
               <TextInput
                 style={styles.inputTextWhite}
                 secureTextEntry
-                onChangeText={secretKey => this.setState({
-                  customAwsOptions: {
-                    ...this.state.customAwsOptions,
-                    secretKey,
-                  },
-                })}
+                onChangeText={async (secretKey) => {
+                  const customAwsOptions = await getItem('customAwsOptions');
+                  this.setState({
+                    customAwsOptions: {
+                      ...customAwsOptions,
+                      secretKey,
+                    },
+                  });
+                  await setItemsObj(
+                    {
+                      customAwsOptions: {
+                        ...customAwsOptions,
+                        secretKey,
+                      },
+                    },
+                  );
+                }
+              }
                 value={this.state.secretKey}
               />
 

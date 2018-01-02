@@ -5,17 +5,18 @@ import {
 
 const storePrefix = '@petsboxStore';
 
-const getItem = async key =>
-   await AsyncStorage.getItem(`${storePrefix}:${key}`);
+const getItem = async (key) => {
+  const valueRaw = await AsyncStorage.getItem(`${storePrefix}:${key}`);
+  return JSON.parse(valueRaw);
+};
 
 const getItems = async (keys) => {
   const prefixedKeys = keys.map(k => `${storePrefix}:${k}`);
-  await AsyncStorage.multiGet(prefixedKeys);
+  return await AsyncStorage.multiGet(prefixedKeys);
 };
 
-
 const setItem = async (key, value) =>
-   await AsyncStorage.setItem(`${storePrefix}:${key}`, value);
+  AsyncStorage.setItem(`${storePrefix}:${key}`, JSON.stringify(value));
 
 const setItems = async (keyValuePairs) => {
   const prefixedKeyValues = keyValuePairs.map((k, v) => {
@@ -25,16 +26,15 @@ const setItems = async (keyValuePairs) => {
     ];
   },
   );
-  await AsyncStorage.multiSet(prefixedKeyValues);
+  return await AsyncStorage.multiSet(prefixedKeyValues);
 };
 
 const setItemsObj = async (keyValueObj) => {
   const prefixedKeyValues = Object.keys(keyValueObj).map((key) => {
     const keyPref = `${storePrefix}:${key}`;
-    return [keyPref, keyValueObj[key].toString()];
+    return [keyPref, JSON.stringify(keyValueObj[key])];
   });
-  console.log('setting values ', prefixedKeyValues);
-  await AsyncStorage.multiSet(prefixedKeyValues);
+  return await AsyncStorage.multiSet(prefixedKeyValues);
 };
 
 export { getItem, getItems, setItem, setItems, setItemsObj };
