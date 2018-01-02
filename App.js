@@ -19,6 +19,7 @@ import moment from 'moment';
 import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
 import AwsOptions from './secrets';
+import { getItem, getItems, setItem, setItemsObj } from './AyncStoreHelper';
 
 const VIBRATION_DURATION = 10000;
 const VIBRATION_PATTERN = [500, 1000, 500];
@@ -244,6 +245,7 @@ export default class App extends Component {
 
   handleUploadClick = async () => {
     this.setState({ isUploading: true, filesUploaded: 0, filesSkipped: [] });
+    await setItemsObj({ isUploading: true, filesUploaded: 0, filesSkipped: [] });
     await sleep(10);
     await this.uploadPhotos();
     await this.uploadVideos();
