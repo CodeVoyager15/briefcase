@@ -1,3 +1,4 @@
+/* eslint linebreak-style: ["error", "windows"] */
 // TODO: Option to delete photos after upload
 import React, { Component } from 'react';
 import sleep from 'sleep-promise';
@@ -48,8 +49,14 @@ export default class App extends Component {
     customAwsOptions: {},
     totalPhotosUploadSize: 0,
     totalVideosUploadSize: 0,
+    totalPhotosInDevice: 0,
+    totalVideosInDevice: 0,
   }
 
+  async componentDidMount() {
+    AppState.addEventListener('change', this._handleAppStateChange);
+    await this.fetchTotalFilesCount();
+  }
 
   handleCloseModal = () => {
     console.log('close modal');
@@ -218,6 +225,13 @@ export default class App extends Component {
       size += decodedData.length;
     }));
     return Number((size / 1000 / 1000).toFixed(2));
+  }
+
+  async fetchTotalFilesCount() {
+    this.setState({
+      totalPhotosInDevice: (await this.getPhotos(true)).length,
+      totalVideosInDevice: (await this.getVideos(true)).length,
+    });
   }
 
   _showModal = () => {
@@ -468,6 +482,8 @@ export default class App extends Component {
       fileLimit,
       totalPhotosUploadSize,
       totalVideosUploadSize,
+      totalPhotosInDevice,
+      totalVideosInDevice,
     } = this.state;
     const selectPhotosText = selectedPhotos.length ?
       `${selectedPhotos.length} photos selected` :
@@ -497,16 +513,20 @@ export default class App extends Component {
             Welcome to Briefcase!
         </Text>
         <Text style={{ margin: 20 }}>
-            Select number of files to upload : {fileLimit}
+        Slide to select X latest files to upload : {fileLimit}
+        </Text>
+        <Text style={{ margin: 3, fontSize: 11 }}>
+        (out of <Text style={{ fontWeight: 'bold' }}> {totalPhotosInDevice || 0} </Text> photos
+        and <Text style={{ fontWeight: 'bold' }}> {totalVideosInDevice || 0} </Text> videos)
         </Text>
         {/* <Text>
             Total size: {totalPhotosUploadSize + totalVideosUploadSize} MB
           </Text> */}
         {this.renderAwsWarning()}
         <Slider
-          maximumValue={2000}
+          maximumValue={this.state.totalPhotosInDevice}
           minimumValue={1}
-          step={10}
+          step={5}
           onValueChange={this.photosNumberChange}
           onSlidingComplete={this.photosNumberChange}
           style={{ width: 300, height: 50, marginBottom: 60 }}
