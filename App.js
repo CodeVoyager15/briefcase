@@ -11,6 +11,7 @@ import {
   Vibration,
   TextInput,
   ScrollView,
+  AppState,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
@@ -51,6 +52,7 @@ export default class App extends Component {
     totalVideosUploadSize: 0,
     totalPhotosInDevice: 0,
     totalVideosInDevice: 0,
+    appState: AppState.currentState,
   }
 
   async componentDidMount() {
@@ -58,16 +60,14 @@ export default class App extends Component {
     await this.fetchTotalFilesCount();
   }
 
-  handleCloseModal = () => {
-    console.log('close modal');
-    this.setState({ isModalVisible: false });
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this._handleAppStateChange);
   }
 
-  getPhotos = () => {
+  getPhotos = (all = false) => {
     return new Promise((resolve, reject) => {
-      console.log('fetching a total files ', this.state.fileLimit);
       CameraRoll.getPhotos({
-        first: this.state.fileLimit,
+        first: all ? 99999 : this.state.fileLimit,
         // FIXME: Currently, RN has a bug on android and assetType 'All'
         // does not return Videos. This only happend on Android
         // https://github.com/facebook/react-native/pull/16429
@@ -80,10 +80,10 @@ export default class App extends Component {
     });
   }
 
-  getVideos = () => {
+  getVideos = (all = false) => {
     return new Promise((resolve, reject) => {
       CameraRoll.getPhotos({
-        first: this.state.fileLimit,
+        first: all ? 99999 : this.state.fileLimit,
         assetType: 'Videos',
       })
       .then((r) => {
@@ -225,6 +225,21 @@ export default class App extends Component {
       size += decodedData.length;
     }));
     return Number((size / 1000 / 1000).toFixed(2));
+  }
+
+  _handleAppStateChange = (nextAppState) => {
+    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+      console.log('App has come to the foreground!');
+    } else {
+      // App is in background / inactive
+
+    }
+    this.setState({ appState: nextAppState });
+  }
+
+  handleCloseModal = () => {
+    console.log('close modal');
+    this.setState({ isModalVisible: false });
   }
 
   async fetchTotalFilesCount() {
@@ -485,6 +500,8 @@ export default class App extends Component {
       totalPhotosInDevice,
       totalVideosInDevice,
     } = this.state;
+    console.log('total photos discovered ', totalPhotosInDevice);
+    console.log('total vids discovered ', totalVideosInDevice);
     const selectPhotosText = selectedPhotos.length ?
       `${selectedPhotos.length} photos selected` :
       'Select photos';
@@ -524,7 +541,7 @@ export default class App extends Component {
           </Text> */}
         {this.renderAwsWarning()}
         <Slider
-          maximumValue={this.state.totalPhotosInDevice}
+          maximumValue={totalPhotosInDevice + totalVideosInDevice}
           minimumValue={1}
           step={5}
           onValueChange={this.photosNumberChange}
