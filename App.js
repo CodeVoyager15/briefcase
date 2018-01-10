@@ -13,6 +13,7 @@ import {
   ScrollView,
   AppState,
 } from 'react-native';
+import { NativeStorage } from 'redux-persist-react-native-fs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
 import base64 from 'base-64';
@@ -255,7 +256,11 @@ export default class App extends Component {
   }
 
   handleSelectPhotosClick = async () => {
+    await NativeStorage.setItem('first', { pho: 'p1' });
     const fetchedPhotos = await this.getPhotos();
+
+    const reso = await NativeStorage.getItem('first');
+    console.log('=-=-= reso ', reso);
     // try {
     //   const totalSize = await this.getTotalSizeInMB(fetchedPhotos);
     //   this.setState({ totalPhotosUploadSize: totalSize });
