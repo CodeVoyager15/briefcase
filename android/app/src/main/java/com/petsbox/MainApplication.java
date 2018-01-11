@@ -4,7 +4,6 @@ import android.app.Application;
 
 import com.facebook.react.ReactApplication;
 import com.rnfs.RNFSPackage;
-import com.jamesisaac.rnbackgroundtask.BackgroundTaskPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
 import com.lwansbrough.RCTCamera.RCTCameraPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -28,7 +27,6 @@ public class MainApplication extends Application implements ReactApplication {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
             new RNFSPackage(),
-          new BackgroundTaskPackage(),
           new RNFetchBlobPackage(),
           new RCTCameraPackage(),
           new VectorIconsPackage()
@@ -50,6 +48,5 @@ public class MainApplication extends Application implements ReactApplication {
   public void onCreate() {
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
-    BackgroundTaskPackage.useContext(this);
   }
 }

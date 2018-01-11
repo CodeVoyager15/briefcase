@@ -148,7 +148,6 @@ android {
 }
 
 dependencies {
-    compile project(':react-native-background-task')
     compile project(':react-native-fetch-blob')
     compile project(':react-native-camera')
     compile project(':react-native-vector-icons')
