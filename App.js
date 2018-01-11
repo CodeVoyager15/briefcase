@@ -22,7 +22,6 @@ import moment from 'moment';
 import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
 import AwsOptions from './secrets';
-import { getItem, getItems, setItem, setItemsObj } from './AsyncStoreHelper';
 
 const VIBRATION_DURATION = 10000;
 const VIBRATION_PATTERN = [500, 1000, 500];
@@ -96,12 +95,12 @@ export default class App extends Component {
 
   fileSkipped = async (file) => {
     console.warn('file skipped: ', file);
-    const filesSkippedSoFar = getItem('filesSkipped');
+    const filesSkippedSoFar = this.state.filesSkipped;
     const filesSkipped = filesSkippedSoFar.concat(file);
     this.setState({
       filesSkipped,
     });
-    await setItem('filesSkipped', filesSkipped);
+    // await setItem('filesSkipped', filesSkipped);
   }
 
   toggleModal = () => {
@@ -153,12 +152,11 @@ export default class App extends Component {
           await this.fileSkipped({ file, error: response });
           resolve();
         }
-        const filesUploadedSoFar = await getItem('filesUploaded');
+        const filesUploadedSoFar = this.state.filesUploaded;
         const filesUploaded = ++filesUploadedSoFar;
         this.setState({
           filesUploaded,
         });
-        await setItem('filesUploaded', filesUploaded);
         resolve();
       } catch (e) {
         this.fileSkipped({ file, error: e });
@@ -206,13 +204,13 @@ export default class App extends Component {
   }
 
   uploadPhotos = async () => {
-    const photosToUpload = await getItem('selectedPhotos');
+    const photosToUpload = this.state.selectedPhotos;
     const organizedPhotos = this.organizeFiles(photosToUpload);
     await Promise.all(organizedPhotos.map(p => this.upload(p)));
   }
 
   uploadVideos = async () => {
-    const videosToUpload = await getItem('selectedVideos');
+    const videosToUpload = this.state.selectedVideos;
     const organizedVideos = this.organizeFiles(videosToUpload);
     await Promise.all(organizedVideos.map(p => this.upload(p)));
     this.onUploadCompleted();
@@ -228,12 +226,14 @@ export default class App extends Component {
     return Number((size / 1000 / 1000).toFixed(2));
   }
 
-  _handleAppStateChange = (nextAppState) => {
+  _handleAppStateChange = async (nextAppState) => {
     if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
-      console.log('App has come to the foreground!');
+      const retrievedState = await NativeStorage.getItem('state');
+      console.log('---> app to foreground. retrieved state: ', retrievedState);
     } else {
       // App is in background / inactive
-
+      console.log('<----- App has gone to background!');
+      await NativeStorage.setItem('state', this.state);
     }
     this.setState({ appState: nextAppState });
   }
@@ -256,11 +256,7 @@ export default class App extends Component {
   }
 
   handleSelectPhotosClick = async () => {
-    await NativeStorage.setItem('first', { pho: 'p1' });
     const fetchedPhotos = await this.getPhotos();
-
-    const reso = await NativeStorage.getItem('first');
-    console.log('=-=-= reso ', reso);
     // try {
     //   const totalSize = await this.getTotalSizeInMB(fetchedPhotos);
     //   this.setState({ totalPhotosUploadSize: totalSize });
@@ -269,11 +265,6 @@ export default class App extends Component {
     // }
 
     this.setState({
-      selectedPhotos: fetchedPhotos,
-      showProgress: true,
-    });
-
-    await setItemsObj({
       selectedPhotos: fetchedPhotos,
       showProgress: true,
     });
@@ -289,10 +280,6 @@ export default class App extends Component {
     //   console.log('something went wroνg ', e);
     // }
     this.setState({
-      selectedVideos: fetchedVideos,
-      showProgress: true,
-    });
-    await setItemsObj({
       selectedVideos: fetchedVideos,
       showProgress: true,
     });
@@ -346,10 +333,11 @@ export default class App extends Component {
     this.setState({
       fileLimit: value,
     });
-    await setItem('fileLimit', value);
   }
 
   renderSettingsModal() {
+    const { customAwsOptions } = this.state;
+
     return (
       <View style={{ display: 'flex', marginRight: 'auto', margin: 20 }}>
         <TouchableOpacity onPress={this._showModal}>
@@ -377,21 +365,12 @@ export default class App extends Component {
               <TextInput
                 style={styles.inputTextWhite}
                 onChangeText={async (bucket) => {
-                  const customAwsOptions = await getItem('customAwsOptions');
                   this.setState({
                     customAwsOptions: {
                       ...customAwsOptions,
                       bucket,
                     },
                   });
-                  await setItemsObj(
-                    {
-                      customAwsOptions: {
-                        ...customAwsOptions,
-                        bucket,
-                      },
-                    },
-                  );
                 }
 
               }
@@ -402,21 +381,12 @@ export default class App extends Component {
               <TextInput
                 style={styles.inputTextWhite}
                 onChangeText={async (region) => {
-                  const customAwsOptions = await getItem('customAwsOptions');
                   this.setState({
                     customAwsOptions: {
                       ...customAwsOptions,
                       region,
                     },
                   });
-                  await setItemsObj(
-                    {
-                      customAwsOptions: {
-                        ...customAwsOptions,
-                        region,
-                      },
-                    },
-                  );
                 }
               }
                 value={this.state.region}
@@ -425,21 +395,12 @@ export default class App extends Component {
               <TextInput
                 style={styles.inputTextWhite}
                 onChangeText={async (accessKey) => {
-                  const customAwsOptions = await getItem('customAwsOptions');
                   this.setState({
                     customAwsOptions: {
                       ...customAwsOptions,
                       accessKey,
                     },
                   });
-                  await setItemsObj(
-                    {
-                      customAwsOptions: {
-                        ...customAwsOptions,
-                        accessKey,
-                      },
-                    },
-                  );
                 }
               }
                 value={this.state.accessKey}
@@ -449,21 +410,12 @@ export default class App extends Component {
                 style={styles.inputTextWhite}
                 secureTextEntry
                 onChangeText={async (secretKey) => {
-                  const customAwsOptions = await getItem('customAwsOptions');
                   this.setState({
                     customAwsOptions: {
                       ...customAwsOptions,
                       secretKey,
                     },
                   });
-                  await setItemsObj(
-                    {
-                      customAwsOptions: {
-                        ...customAwsOptions,
-                        secretKey,
-                      },
-                    },
-                  );
                 }
               }
                 value={this.state.secretKey}
