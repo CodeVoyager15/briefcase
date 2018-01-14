@@ -19,6 +19,7 @@ import Modal from 'react-native-modal';
 import base64 from 'base-64';
 import RNFetchBlob from 'react-native-fetch-blob';
 import moment from 'moment';
+import _ from 'lodash';
 import BackgroundTask from 'react-native-background-task';
 // import queueFactory from 'react-native-queue';
 import { RNS3 } from 'react-native-aws3';
@@ -28,40 +29,21 @@ import AwsOptions from './secrets';
 const VIBRATION_DURATION = 10000;
 const VIBRATION_PATTERN = [500, 1000, 500];
 
-// const AwsOptions = {
-//   keyPrefix: 'uploads/petsbox/',
-//   bucket: '*****',
-//   region: '******',
-//   accessKey: '*************',
-//   secretKey: '********************',
-//   successActionStatus: 201,
-// };
 
 BackgroundTask.define(async () => {
-  // Init queue
-  // const queue = await queueFactory();
-
-  // Register job worker
-  // queue.addWorker('pre-fetch-image', async (id, payload) => {
-  //   Image.prefetch(payload.imageUrl);
-  // });
-
-  // // Start the queue with a lifespan
-  // // IMPORTANT: OS background tasks are limited to 30 seconds or less.
-  // // NOTE: Queue lifespan logic will attempt to stop queue processing 500ms less than passed lifespan for a healthy shutdown buffer.
-  // // IMPORTANT: Queue processing started with a lifespan will ONLY process jobs that have a defined timeout set.
-  // // Additionally, lifespan processing will only process next job if job.timeout < (remainingLifespan - 500).
-  // await queue.start(25000); // Run queue for at most 25 seconds.
-
+  const restoredState = await NativeStorage.getItem('state');
   // finish() must be called before OS hits timeout.
   BackgroundTask.finish();
 });
+
 
 export default class App extends Component {
 
   state = {
     selectedPhotos: [],
+    pendingPhotos: [],
     selectedVideos: [],
+    pendingVideos: [],
     isUploading: false,
     fileLimit: 5,
     filesUploaded: 0,
@@ -122,7 +104,6 @@ export default class App extends Component {
     this.setState({
       filesSkipped,
     });
-    // await setItem('filesSkipped', filesSkipped);
   }
 
   toggleModal = () => {
@@ -154,7 +135,9 @@ export default class App extends Component {
     return `${fileName}.${suffix}`;
   }
 
-  upload = async (file) => {
+  // FIXME: Maybe derive type from file extension?
+  upload = async (file, type = 'photo') => {
+    const { pendingPhotos, pendingVideos } = this.state;
     return new Promise(async (resolve) => {
       const imgURI = file.node.image.uri;
       const fileToUpload = {
@@ -166,7 +149,7 @@ export default class App extends Component {
         const folderPrefix = file.folder;
         const prefixedAwsOptions = {
           ...AwsOptions,
-          // ...this.state.customAwsOptions, // Uncomment to override
+          // ...this.state.customAwsOptions, // Uncomment to actually override
           keyPrefix: AwsOptions.keyPrefix + folderPrefix,
         };
         const response = await RNS3.put(fileToUpload, prefixedAwsOptions);
@@ -178,6 +161,8 @@ export default class App extends Component {
         const filesUploaded = ++filesUploadedSoFar;
         this.setState({
           filesUploaded,
+          pendingPhotos: type === 'photo' ? _.remove(pendingPhotos, f => f.node.image.uri === imgURI) : pendingPhotos,
+          pendingVideos: type === 'video' ? _.remove(pendingVideos, f => f.node.image.uri === imgURI) : pendingVideos,
         });
         resolve();
       } catch (e) {
@@ -216,25 +201,19 @@ export default class App extends Component {
       selectedPhotos: [],
       uploadCompleted: true,
     });
-    await setItemsObj({
-      isUploading: false,
-      selectedPhotos: [],
-      uploadCompleted: true,
-    });
-
     console.log('All done! :)');
   }
 
   uploadPhotos = async () => {
-    const photosToUpload = this.state.selectedPhotos;
+    const photosToUpload = this.state.pendingPhotos;
     const organizedPhotos = this.organizeFiles(photosToUpload);
-    await Promise.all(organizedPhotos.map(p => this.upload(p)));
+    await Promise.all(organizedPhotos.map(p => this.upload(p, 'photo')));
   }
 
   uploadVideos = async () => {
-    const videosToUpload = this.state.selectedVideos;
+    const videosToUpload = this.state.pendingVideos;
     const organizedVideos = this.organizeFiles(videosToUpload);
-    await Promise.all(organizedVideos.map(p => this.upload(p)));
+    await Promise.all(organizedVideos.map(p => this.upload(p, 'video')));
     this.onUploadCompleted();
   }
 
@@ -250,8 +229,14 @@ export default class App extends Component {
 
   _handleAppStateChange = async (nextAppState) => {
     if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+      console.log('-----> App has come to foreground!');
       const retrievedState = await NativeStorage.getItem('state');
-      console.log('---> app to foreground. retrieved state: ', retrievedState);
+      const { pendingPhotos, pendingVideos } = retrievedState;
+      console.log('resuming uploads with pending photos: ', pendingPhotos.length);
+      // Should resume upload
+      this.setState(retrievedState);
+      await this.uploadPhotos();
+      await this.uploadVideos();
     } else {
       // App is in background / inactive
       console.log('<----- App has gone to background!');
@@ -288,6 +273,7 @@ export default class App extends Component {
 
     this.setState({
       selectedPhotos: fetchedPhotos,
+      pendingPhotos: fetchedPhotos,
       showProgress: true,
     });
   }
@@ -303,13 +289,13 @@ export default class App extends Component {
     // }
     this.setState({
       selectedVideos: fetchedVideos,
+      pendingVideos: fetchedVideos,
       showProgress: true,
     });
   }
 
   handleUploadClick = async () => {
     this.setState({ isUploading: true, filesUploaded: 0, filesSkipped: [] });
-    await setItemsObj({ isUploading: true, filesUploaded: 0, filesSkipped: [] });
     await sleep(10);
     await this.uploadPhotos();
     await this.uploadVideos();
@@ -479,8 +465,6 @@ export default class App extends Component {
       totalPhotosInDevice,
       totalVideosInDevice,
     } = this.state;
-    console.log('total photos discovered ', totalPhotosInDevice);
-    console.log('total vids discovered ', totalVideosInDevice);
     const selectPhotosText = selectedPhotos.length ?
       `${selectedPhotos.length} photos selected` :
       'Select photos';
