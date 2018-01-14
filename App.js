@@ -19,6 +19,8 @@ import Modal from 'react-native-modal';
 import base64 from 'base-64';
 import RNFetchBlob from 'react-native-fetch-blob';
 import moment from 'moment';
+import BackgroundTask from 'react-native-background-task';
+// import queueFactory from 'react-native-queue';
 import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
 import AwsOptions from './secrets';
@@ -34,6 +36,26 @@ const VIBRATION_PATTERN = [500, 1000, 500];
 //   secretKey: '********************',
 //   successActionStatus: 201,
 // };
+
+BackgroundTask.define(async () => {
+  // Init queue
+  // const queue = await queueFactory();
+
+  // Register job worker
+  // queue.addWorker('pre-fetch-image', async (id, payload) => {
+  //   Image.prefetch(payload.imageUrl);
+  // });
+
+  // // Start the queue with a lifespan
+  // // IMPORTANT: OS background tasks are limited to 30 seconds or less.
+  // // NOTE: Queue lifespan logic will attempt to stop queue processing 500ms less than passed lifespan for a healthy shutdown buffer.
+  // // IMPORTANT: Queue processing started with a lifespan will ONLY process jobs that have a defined timeout set.
+  // // Additionally, lifespan processing will only process next job if job.timeout < (remainingLifespan - 500).
+  // await queue.start(25000); // Run queue for at most 25 seconds.
+
+  // finish() must be called before OS hits timeout.
+  BackgroundTask.finish();
+});
 
 export default class App extends Component {
 
