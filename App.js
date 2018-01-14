@@ -20,21 +20,12 @@ import base64 from 'base-64';
 import RNFetchBlob from 'react-native-fetch-blob';
 import moment from 'moment';
 import _ from 'lodash';
-import BackgroundTask from 'react-native-background-task';
-// import queueFactory from 'react-native-queue';
 import { RNS3 } from 'react-native-aws3';
 import styles from './styles';
 import AwsOptions from './secrets';
 
 const VIBRATION_DURATION = 10000;
 const VIBRATION_PATTERN = [500, 1000, 500];
-
-
-BackgroundTask.define(async () => {
-  const restoredState = await NativeStorage.getItem('state');
-  // finish() must be called before OS hits timeout.
-  BackgroundTask.finish();
-});
 
 
 export default class App extends Component {
