@@ -1,13 +1,6 @@
 # Briefcase  📦
 ### Organize & Upload your photos & videos to AWS S3
 
-![Alt text](screenshots/landing.png?raw=true "Landing View")
-
-### Installation
-As a react native app, it needs the react native boiler-plate: 
-check this out https://facebook.github.io/react-native/docs/getting-started.html
-
-
 ### Debugging
 If you want to run/debug using Android, I recommend setting up the 
 Android Studio and spin up an emulator instance.
